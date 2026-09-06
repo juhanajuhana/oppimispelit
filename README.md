@@ -10,6 +10,12 @@ Pelit ovat julkaistuna GitHub Pagesissa: https://juhanajuhana.github.io/oppimisp
 | --- | --- | --- |
 | Maailman meret: merialueet ja merivirrat | Maantiede | [merivirrat/](https://juhanajuhana.github.io/oppimispelit/merivirrat/) |
 
+## Skilli
+
+Pelien rakentamisohje on skillinä kansiossa `.claude/skills/oppimispeli/`. Claude Code lataa sen automaattisesti, kun työkansio on tämä repo. Ohje viittaa esimerkkinä repon omaan peliin, joten sitä ei tarvitse kopioida erikseen.
+
+Claude-sovellukseen ladattava ohut versio, joka vain ohjaa lukemaan ohjeen täältä, on kansiossa `app-skill/oppimispeli/`. Kun ohje muuttuu, muutos tehdään vain tähän repoon.
+
 ## Uuden pelin lisääminen
 
 1. Tee kansio pelin nimellä, esimerkiksi `solu/`, ja tallenna peli sinne nimellä `index.html`.
