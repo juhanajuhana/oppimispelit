@@ -30,14 +30,14 @@
   .grid{stroke:#7a9bb0;stroke-width:.8;stroke-dasharray:3 5;fill:none}
   .equator{stroke:#5d7f95;stroke-dasharray:none}
   .current{fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;cursor:pointer;transition:opacity .2s}
-  .current.warm{stroke:var(--warm)} .current.cold{stroke:var(--cold)}
+  .current.warm{stroke:var(--warm);marker-end:url(#ar-warm)} .current.cold{stroke:var(--cold);marker-end:url(#ar-cold)}
   .current.counter{stroke-dasharray:8 7;stroke-width:4}
-  .hit{fill:none;stroke:transparent;stroke-width:22;cursor:pointer}
+  .hit{fill:none;stroke:transparent;stroke-width:26;cursor:pointer}
   .flow{fill:none;stroke:#fff;stroke-width:1.6;stroke-dasharray:4 14;stroke-linecap:round;pointer-events:none;opacity:.85;animation:flow 1.4s linear infinite}
   @keyframes flow{to{stroke-dashoffset:-18}}
   @media (prefers-reduced-motion:reduce){.flow{animation:none}}
   g.cur.dim .current,g.cur.dim .flow{opacity:.18}
-  g.cur.neutral .current{stroke:#7d8d99}
+  g.cur.neutral .current{stroke:#7d8d99;marker-end:url(#ar-neutral)}
   g.cur.active .current{stroke-width:7;filter:drop-shadow(0 0 3px rgba(0,0,0,.35))}
   .lbl{font-size:11.5px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:rgba(255,255,255,.9);stroke-width:3.5px;stroke-linejoin:round;pointer-events:none}
   .lbl.hidden{display:none}
@@ -66,6 +66,7 @@
   g.sea.ocean:hover circle,g.sea.ocean.active circle{fill:rgba(79,127,156,.18)}
   g.sea:hover circle,g.sea.active circle{opacity:1;stroke-width:2.5;stroke:#1b4a68}
   g.sea.dim{opacity:.25}
+  g.sea circle.hit-sea{fill:transparent!important;stroke:none!important}
   .slbl{font-size:10.5px;font-style:italic;fill:#1b4a68;paint-order:stroke;stroke:rgba(255,255,255,.85);stroke-width:3px;stroke-linejoin:round;pointer-events:none}
   .slbl.hidden{display:none}
   body.hide-seas g.sea{display:none}
@@ -95,16 +96,16 @@
   .cheer.big{font-size:18px;font-weight:600;color:#1f6f8b}
   .review{font-size:14px;margin-top:8px;padding-left:18px}
   .review li{margin:2px 0}
-  body.flow g.cur .current{stroke:#7d8d99}
+  body.flow g.cur .current{stroke:#7d8d99;marker-end:url(#ar-neutral)}
   body.flow g.cur.active .current{stroke-width:7}
-  body.flow g.cur.reveal.warm .current{stroke:var(--warm)} body.flow g.cur.reveal.cold .current{stroke:var(--cold)}
+  body.flow g.cur.reveal.warm .current{stroke:var(--warm);marker-end:url(#ar-warm)} body.flow g.cur.reveal.cold .current{stroke:var(--cold);marker-end:url(#ar-cold)}
   button.lvl{border:1px solid #d4dbe1;background:#fff;border-radius:6px;font:inherit;cursor:pointer;color:var(--ink)}
   button.lvl:hover{border-color:#1f6f8b}
   body.calm .flow{animation:none}
   body.calm g.cur.active .flow{animation:flow 1.4s linear infinite}
   g.sea.known circle{stroke:#2e8b57;fill:#d6efe0}
-  g.cur.known .current{stroke:#2e8b57}
-  body.flow g.cur.known .current{stroke:#2e8b57}
+  g.cur.known .current{stroke:#2e8b57;marker-end:url(#ar-known)}
+  body.flow g.cur.known .current{stroke:#2e8b57;marker-end:url(#ar-known)}
   .quiz-q .syl{color:var(--muted);font-weight:400}
   .tip{font-size:14px;color:var(--muted);margin-top:6px}
   .support{display:grid;gap:6px;margin-top:8px;font-size:14px;color:var(--ink)}
@@ -182,9 +183,10 @@ const svg=document.getElementById("map");
 const N="http://www.w3.org/2000/svg";
 const el=(t,a={})=>{const e=document.createElementNS(N,t);for(const k in a)e.setAttribute(k,a[k]);return e};
 const defs=el("defs");
-["warm","cold"].forEach(t=>{
+const arrowFill={warm:"#d1452b",cold:"#2757a8",neutral:"#7d8d99",known:"#2e8b57"};
+Object.entries(arrowFill).forEach(([t,f])=>{
   const m=el("marker",{id:"ar-"+t,viewBox:"0 0 10 10",refX:"7",refY:"5",markerWidth:"4",markerHeight:"4",orient:"auto-start-reverse"});
-  const p=el("path",{d:"M0,0 L10,5 L0,10 Z",fill:t==="warm"?"#d1452b":"#2757a8"});m.appendChild(p);defs.appendChild(m);
+  const p=el("path",{d:"M0,0 L10,5 L0,10 Z",fill:f});m.appendChild(p);defs.appendChild(m);
 });
 svg.appendChild(defs);
 svg.appendChild(el("rect",{width:W,height:H,fill:"var(--sea)"}));
@@ -213,7 +215,7 @@ currents.forEach(c=>{
   (c.counter||[]).forEach(p=>draw(p," counter"));
   const [lx,ly]=px(...c.label);
   const t=el("text",{x:lx,y:ly,class:"lbl","text-anchor":"middle"});t.textContent=c.name;g.appendChild(t);
-  g.addEventListener("click",()=>onPick(c));g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onPick(c)}});
+  g.addEventListener("click",e=>{const s=seasWin()?seaAtPoint(e,mode!=="explore"):null;if(s){e.stopPropagation();onPickSea(s)}else onPick(c)});g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onPick(c)}});
   svg.appendChild(g);groups[c.id]=g;
 });
 
@@ -221,15 +223,15 @@ currents.forEach(c=>{
 // ---------- sea areas: center (lon,lat), radius px, ocean = large open area
 const seas=[
  {id:"mustameri",tip:"Välimeren koillispuolella, lähes suljettu.",name:"Mustameri",c:[34,43],r:9,why:"Sisämeri Euroopan ja Aasian välissä. Yhteys Välimereen vain kapean Bosporinsalmen kautta."},
- {id:"atlantti",tip:"Amerikkojen ja Euroopan–Afrikan välissä.",name:"Atlantin valtameri",c:[-32,18],r:75,ocean:true,why:"Toiseksi suurin valtameri. Golfvirta kuljettaa sen lämpöä kohti Eurooppaa."},
- {id:"jaameri",tip:"Pohjoisnavan ympärillä, mantereiden yläpuolella.",name:"Pohjoinen jäämeri",c:[40,80],r:40,ocean:true,why:"Pienin ja matalin valtameri, suurelta osin jään peitossa. Skandinavian pohjoispuolinen osa on Barentsinmeri."},
+ {id:"atlantti",tip:"Amerikkojen ja Euroopan–Afrikan välissä.",name:"Atlantin valtameri",c:[-32,18],r:75,ocean:true,extra:[[-20,-30,55]],why:"Toiseksi suurin valtameri. Golfvirta kuljettaa sen lämpöä kohti Eurooppaa."},
+ {id:"jaameri",tip:"Pohjoisnavan ympärillä, mantereiden yläpuolella.",name:"Pohjoinen jäämeri",c:[40,80],r:40,ocean:true,extra:[[-60,80,40],[-150,80,40],[140,80,40]],why:"Pienin ja matalin valtameri, suurelta osin jään peitossa. Skandinavian pohjoispuolinen osa on Barentsinmeri."},
  {id:"valimeri",tip:"Pitkä rako Euroopan ja Afrikan välissä.",name:"Välimeri",c:[18,36],r:15,why:"Euroopan, Afrikan ja Aasian välinen sisämeri. Suolaisempi kuin Atlantti, koska haihdunta on suurta."},
  {id:"kaspia",tip:"Iso pisara Mustanmeren itäpuolella.",name:"Kaspianmeri",c:[51,42],r:8,why:"Maailman suurin järvi – kutsutaan mereksi, vaikka sillä ei ole yhteyttä valtameriin."},
  {id:"intia",tip:"Afrikan, Intian ja Australian välissä.",name:"Intian valtameri",c:[78,-22],r:65,ocean:true,why:"Kolmanneksi suurin valtameri. Monsuunituulet kääntävät sen pohjoisosan virrat vuodenajan mukaan."},
  {id:"itameri",tip:"Suomen kotimeri, Ruotsin itäpuolella.",name:"Itämeri",c:[20,59],r:9,why:"Suomen oma meri. Vähäsuolainen murtovesi, koska jokia laskee paljon ja yhteys valtamereen on kapea."},
  {id:"karibia",tip:"Saarikaaren sisällä Etelä-Amerikan pohjoispuolella.",name:"Karibianmeri",c:[-75,15],r:13,why:"Trooppinen meri Keski-Amerikan ja Antillien välissä. Golfvirran lämmin vesi lähtee liikkeelle täältä."},
  {id:"meksiko",tip:"Iso koukku Yhdysvaltain eteläpuolella.",name:"Meksikonlahti",c:[-90,25],r:11,why:"Lämmin lahti Pohjois-Amerikan etelärannikolla. Hurrikaanit saavat siitä voimansa."},
- {id:"tyyni",tip:"Suurin: Amerikkojen ja Aasian välissä.",name:"Tyynimeri",c:[-150,-5],r:95,ocean:true,why:"Suurin ja syvin valtameri – kattaa kolmasosan maapallon pinnasta."},
+ {id:"tyyni",tip:"Suurin: Amerikkojen ja Aasian välissä.",name:"Tyynimeri",c:[-150,-5],r:95,ocean:true,extra:[[-140,35,45],[160,10,70]],why:"Suurin ja syvin valtameri – kattaa kolmasosan maapallon pinnasta."},
  {id:"hudson",tip:"Iso lahti keskellä Kanadaa.",name:"Hudsoninlahti",c:[-85,59],r:10,why:"Suuri, matala lahti Kanadassa. Jäässä suuren osan vuotta."},
  {id:"norja",tip:"Norjan rannikon edustalla, Itämeren luoteispuolella.",name:"Norjanmeri",c:[3,68],r:11,why:"Norjan rannikon edustalla. Golfvirran jatke pitää sen sulana talvellakin."},
  {id:"arabia",tip:"Arabian niemimaan ja Intian välissä.",name:"Arabianmeri",c:[63,14],r:13,why:"Intian valtameren luoteisosa Arabian niemimaan ja Intian välissä."},
@@ -245,8 +247,10 @@ const seaGroups={};
 seas.forEach(sd=>{
   const [x,y]=px(...sd.c);
   const g=el("g",{class:"sea"+(sd.ocean?" ocean":""),tabindex:"0",role:"button","aria-label":sd.name,"data-id":sd.id});
+  if(!sd.ocean)g.appendChild(el("circle",{cx:x,cy:y,r:sd.r+8,class:"hit-sea"}));
+  (sd.extra||[]).forEach(([lo,la,r])=>{const [ex,ey]=px(lo,la);g.appendChild(el("circle",{cx:ex,cy:ey,r,class:"hit-sea"}))});
   g.appendChild(el("circle",{cx:x,cy:y,r:sd.r}));
-  if(sd.c2){const [x2,y2]=px(...sd.c2);g.appendChild(el("circle",{cx:x2,cy:y2,r:sd.r}));}
+  if(sd.c2){const [x2,y2]=px(...sd.c2);g.appendChild(el("circle",{cx:x2,cy:y2,r:sd.r+8,class:"hit-sea"}));g.appendChild(el("circle",{cx:x2,cy:y2,r:sd.r}));}
   const t=el("text",{x,y:sd.ocean?y+4:y-sd.r-3,class:"slbl","text-anchor":sd.c2?"start":"middle"});t.textContent=sd.name;g.appendChild(t);
   g.addEventListener("click",e=>{e.stopPropagation();onPickSea(sd)});
   g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();onPickSea(sd)}});
@@ -256,32 +260,48 @@ seas.forEach(sd=>{
 seas.filter(s=>s.ocean).forEach(s=>svg.insertBefore(seaGroups[s.id],svg.querySelector("g.cur")));
 seas.filter(s=>!s.ocean).forEach(s=>svg.insertBefore(seaGroups[s.id],svg.querySelector("g.cur")));
 
+// ---------- hit-testing: currents are drawn on top of sea circles, so when the question is about a sea, the sea under the click wins
+const svgPoint=e=>{const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())};
+const circlesOf=sd=>[[sd.c,sd.r],...(sd.c2?[[sd.c2,sd.r]]:[]),...(sd.extra||[]).map(([lo,la,r])=>[[lo,la],r])];
+const inside=(sd,p)=>circlesOf(sd).some(([c,r])=>{const [x,y]=px(...c);return (p.x-x)**2+(p.y-y)**2<=r*r});
+function seaAtPoint(e,withOceans){
+  const b=document.body.classList;if(b.contains("hide-seas"))return null;
+  const p=svgPoint(e);
+  const hits=seas.filter(sd=>(sd.ocean?withOceans&&!b.contains("hide-oceans"):!b.contains("hide-small"))&&inside(sd,p));
+  return hits.find(sd=>!sd.ocean)||hits[0]||null;
+}
+const seasWin=()=>mode==="explore"||mode==="sea"||(mode==="flow"&&!!flow.q&&flow.q.kind==="sea");
+svg.addEventListener("click",e=>{if(!e.target.closest("g.cur,g.sea"))onMiss()});
+
 // ---------- state & modes
 const panel=document.getElementById("panel");
 let mode="explore",quiz=null;const flow={timer:null};
-const setSeaClass=(fn)=>seas.forEach(sd=>{seaGroups[sd.id].className.baseVal="sea"+(sd.ocean?" ocean":"")+" "+(fn(sd)||"")});
-const setClass=(fn)=>currents.forEach(c=>{groups[c.id].className.baseVal="cur "+(fn(c)||"")});
+const knownSea=sd=>support.showKnown&&known.has("s:"+sd.id);
+const knownCur=c=>support.showKnown&&known.has("c:"+c.id)&&(known.has("t:"+c.id)||!(flow.level&&levels[flow.level].temp));
+const setSeaClass=(fn)=>seas.forEach(sd=>{seaGroups[sd.id].className.baseVal="sea"+(sd.ocean?" ocean":"")+" "+(fn(sd)||"")+(knownSea(sd)?" known":"")});
+const setClass=(fn)=>currents.forEach(c=>{groups[c.id].className.baseVal="cur "+(fn(c)||"")+(knownCur(c)?" known":"")});
+const prefs={labels:true,sealabels:true};
 const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(v=>v[1]);
 
 function setMode(m){
   mode=m;quiz=null;
   document.getElementById("m-explore").setAttribute("aria-pressed",m==="explore");document.getElementById("m-flow").setAttribute("aria-pressed",m!=="explore");
-  document.body.classList.toggle("flow",m==="flow");if(m!=="flow")zoomTo(null);if(flow.timer){clearInterval(flow.timer);flow.timer=null}
+  document.body.classList.toggle("flow",m==="flow");if(m!=="flow")zoomTo(null);if(flow.timer){clearInterval(flow.timer);flow.timer=null}if(flow.adv){clearTimeout(flow.adv);flow.adv=null}flow.done=true;
   document.getElementById("showseas").checked=!(m==="name"||m==="temp");document.getElementById("showcur").checked=m!=="sea";applyLayers();setSeaClass(()=>"");
   const lbl=document.getElementById("labels");
-  if(m==="explore"){setClass(()=>"");applyLabels();panel.innerHTML=`<h2>Tutki karttaa</h2><p>Klikkaa merialuetta tai virtaa.</p><details><summary>Miten karttaa luetaan</summary><p style="margin-top:8px">Siniset ympyrät ovat meriä ja lahtia, katkoviivat valtameriä. Nuolet ovat merivirtoja: punainen tuo lämmintä vettä päiväntasaajalta, sininen kylmää napa-alueilta.</p><p>Pohjoisella pallonpuoliskolla virrat kiertävät myötäpäivään, eteläisellä vastapäivään.</p></details>`;}
+  if(m==="explore"){setClass(()=>"");lbl.checked=prefs.labels;document.getElementById("sealabels").checked=prefs.sealabels;applyLabels();panel.innerHTML=`<h2>Tutki karttaa</h2><p>Klikkaa merialuetta tai virtaa.</p><details><summary>Miten karttaa luetaan</summary><p style="margin-top:8px">Siniset ympyrät ovat meriä ja lahtia, katkoviivat valtameriä. Nuolet ovat merivirtoja: punainen tuo lämmintä vettä päiväntasaajalta, sininen kylmää napa-alueilta.</p><p>Pohjoisella pallonpuoliskolla virrat kiertävät myötäpäivään, eteläisellä vastapäivään.</p></details>`;}
   if(m==="name"){lbl.checked=false;applyLabels();setClass(()=>"");quiz={order:shuffle(currents),i:0,right:0,locked:false};askName();}
   if(m==="flow"){chooseLevel();}
   if(m==="sea"){document.getElementById("sealabels").checked=false;applyLabels();setClass(()=>"dim");const so=document.getElementById("showoceans").checked,sm=document.getElementById("showsmall").checked;const pool=seas.filter(x=>x.ocean?so:sm);quiz={order:shuffle(pool.length?pool:seas),i:0,right:0,locked:false};askSea();}
   if(m==="temp"){lbl.checked=true;applyLabels();setClass(()=>"neutral");quiz={order:shuffle(currents),i:0,right:0,answered:new Set()};panel.innerHTML=`<h2>Lämmin vai kylmä?</h2><p>Kaikki virrat ovat nyt harmaita. Klikkaa virtaa ja päättele suunnasta, onko se lämmin vai kylmä.</p><p class="score">Vihje: päiväntasaajalta poispäin = lämmin, napa-alueilta kohti päiväntasaajaa = kylmä.</p>`;}
 }
 function applyLabels(){const on=document.getElementById("labels").checked;document.querySelectorAll(".lbl").forEach(t=>t.classList.toggle("hidden",!on));const so=document.getElementById("sealabels").checked;document.querySelectorAll(".slbl").forEach(t=>t.classList.toggle("hidden",!so));}
-document.getElementById("sealabels").addEventListener("change",applyLabels);
+document.getElementById("sealabels").addEventListener("change",e=>{prefs.sealabels=e.target.checked;applyLabels()});
 function applyLayers(){const ss=document.getElementById("showseas").checked,sc=document.getElementById("showcur").checked,so=document.getElementById("showoceans").checked,sm=document.getElementById("showsmall").checked;
   document.body.classList.toggle("hide-seas",!ss);document.body.classList.toggle("hide-cur",!sc);document.body.classList.toggle("hide-oceans",!so);document.body.classList.toggle("hide-small",!sm);
   ["sealabels","showoceans","showsmall"].forEach(id=>document.getElementById(id).disabled=!ss);document.getElementById("labels").disabled=!sc;}
 document.getElementById("showseas").addEventListener("change",applyLayers);["showoceans","showsmall"].forEach(id=>document.getElementById(id).addEventListener("change",applyLayers));document.getElementById("showcur").addEventListener("change",applyLayers);
-document.getElementById("labels").addEventListener("change",applyLabels);
+document.getElementById("labels").addEventListener("change",e=>{prefs.labels=e.target.checked;applyLabels()});
 ["explore","flow"].forEach(k=>document.getElementById("m-"+k).addEventListener("click",()=>setMode(k)));
 
 function askName(){
@@ -296,7 +316,10 @@ function askName(){
 const support={calm:false,zoom:true,syl:false,speak:false,minutes:10,showKnown:true};
 const known=new Set(),streaks=new Map();
 const regions={eu:[-30,70,30,80],na:[-140,-30,5,78],sa:[-95,-20,-58,15],asia:[40,180,-10,72],ind:[25,130,-45,35],aus:[95,180,-48,5],bering:[110,180,38,72]};
-const seaRegion={mustameri:"eu",valimeri:"eu",pohjanmeri:"eu",kaspia:"eu",itameri:"eu",norja:"eu",karibia:"na",meksiko:"na",hudson:"na",baffin:"na","labrador-meri":"na",arabia:"ind",bengali:"ind",etelakiina:"asia",koralli:"aus","japani-meri":"asia",bering:"bering"};
+const seaRegion={mustameri:"eu",valimeri:"eu",kaspia:"eu",itameri:"eu",norja:"eu",karibia:"na",meksiko:"na",hudson:"na",baffin:"na","labrador-meri":"na",arabia:"ind",bengali:"ind",etelakiina:"asia",koralli:"aus","japani-meri":"asia",bering:"bering"};
+const basins={natl:[-100,30,5,75],satl:[-70,30,-60,5],npe:[-170,-90,5,60],npw:[100,180,5,70],spe:[-130,-60,-50,5],spw:[120,180,-50,-5],ind:[60,140,-50,0]};
+const curRegion={golf:"natl",kanaria:"natl",labrador:"natl",brasilia:"satl",benguela:"satl",kalifornia:"npe",japani:"npw",kuriilit:"npw",peru:"spe",itaaustralia:"spw",lansiaustralia:"ind"};
+const isNarrow=()=>svg.getBoundingClientRect().width<600;
 const FULL=[0,0,W,H];let vbCur=FULL.slice(),vbAnim=null;
 const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function zoomTo(box){
@@ -311,7 +334,7 @@ function zoomTo(box){
 const syl=n=>support.syl?n.replace(/(valta)?(meri|lahti|virta)$/,(m,a,b)=>(a?a+"·":"")+"<span class=\"syl\">·</span>"+b).replace("·<span","<span"):n;
 function speak(txt){if(!support.speak||!("speechSynthesis" in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang="fi-FI";u.rate=.9;speechSynthesis.speak(u);}catch(e){}}
 function markKnown(key,ok){const n=ok?(streaks.get(key)||0)+1:0;streaks.set(key,n);if(n>=3)known.add(key);applyKnown();}
-function applyKnown(){const on=support.showKnown;seas.forEach(sd=>seaGroups[sd.id].classList.toggle("known",on&&known.has("s:"+sd.id)));currents.forEach(c=>groups[c.id].classList.toggle("known",on&&known.has("c:"+c.id)&&known.has("t:"+c.id)));}
+function applyKnown(){seas.forEach(sd=>seaGroups[sd.id].classList.toggle("known",knownSea(sd)));currents.forEach(c=>groups[c.id].classList.toggle("known",knownCur(c)));}
 function neighbourOrder(items){const rest=items.slice();const out=[];let cur=rest.find(q=>q.t.id==="itameri")||rest.find(q=>q.t.id==="golf")||rest[0];
   while(cur){out.push(cur);rest.splice(rest.indexOf(cur),1);if(!rest.length)break;const [lo,la]=cur.t.c||cur.t.label;
     cur=rest.reduce((b,q)=>{const [x,y]=q.t.c||q.t.label;const d=(x-lo)**2+(y-la)**2;return !b||d<b.d?{q,d}:b},null).q;}
@@ -319,7 +342,7 @@ function neighbourOrder(items){const rest=items.slice();const out=[];let cur=res
 function supportPanel(){
   return `<details><summary>Tuki ja asetukset</summary><div class="support">
   <label><input type="checkbox" id="sp-calm" ${support.calm?"checked":""}> Rauhallinen tila – ei automaattista siirtymää, virhe kysytään heti uudestaan, luvut vasta lopussa</label>
-  <label><input type="checkbox" id="sp-zoom" ${support.zoom?"checked":""}> Lähennä alueeseen perustasolla</label>
+  <label><input type="checkbox" id="sp-zoom" ${support.zoom?"checked":""}> Lähennä alueeseen perustasolla ja kapealla näytöllä</label>
   <label><input type="checkbox" id="sp-syl" ${support.syl?"checked":""}> Tavuta nimet (Bengalin·lahti)</label>
   <label><input type="checkbox" id="sp-speak" ${support.speak?"checked":""}> Lue nimi ääneen</label>
   <label><input type="checkbox" id="sp-known" ${support.showKnown?"checked":""}> Näytä osaamani vihreinä kartalla</label>
@@ -366,8 +389,8 @@ function startFlow(level){
   document.getElementById("showseas").checked=L.seas;document.getElementById("showcur").checked=L.cur;
   document.getElementById("showoceans").checked=true;document.getElementById("showsmall").checked=true;
   document.getElementById("sealabels").checked=false;document.getElementById("labels").checked=false;applyLayers();applyLabels();
-  Object.assign(flow,{queue:buildFlowPool(),asked:0,right:0,streak:0,best:0,missed:new Map(),left:FLOW_SECONDS,busy:false,q:null,done:false});
-  flow.timer=setInterval(()=>{flow.left--;const bar=document.getElementById("tbar");if(bar)bar.style.width=(flow.left/FLOW_SECONDS*100)+"%";const tt=document.getElementById("tleft");if(tt)tt.textContent=fmt(flow.left);if(flow.left<=0)endFlow();},1000);
+  Object.assign(flow,{queue:buildFlowPool(),asked:0,right:0,streak:0,best:0,missed:new Map(),left:FLOW_SECONDS,busy:false,q:null,done:false,adv:null});
+  if(flow.timer)clearInterval(flow.timer);if(flow.adv)clearTimeout(flow.adv);flow.timer=setInterval(()=>{flow.left--;const bar=document.getElementById("tbar");if(bar)bar.style.width=(flow.left/FLOW_SECONDS*100)+"%";const tt=document.getElementById("tleft");if(tt)tt.textContent=fmt(flow.left);if(flow.left<=0)endFlow();},1000);
   nextFlow();
 }
 const fmt=sec=>`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
@@ -376,13 +399,14 @@ function flowHeader(){
   ${support.calm?"":`<div class="stats"><span>aikaa <b id="tleft">${fmt(flow.left)}</b></span><span>oikein <b>${flow.right}/${flow.asked}</b></span><span class="streak">putki <b>${flow.streak}</b></span></div>`}`;
 }
 function nextFlow(){
-  if(flow.done)return;
+  if(flow.done||mode!=="flow")return;
+  if(flow.adv){clearTimeout(flow.adv);flow.adv=null}
   if(!flow.queue.length)flow.queue=buildFlowPool();
   flow.q=flow.queue.shift();flow.busy=false;
   setClass(()=>"");setSeaClass(()=>"");
   const q=flow.q,kindTxt={sea:"merialue",cur:"merivirta",temp:"lämmin vai kylmä"}[q.kind];
   let body="";
-  const reg=q.kind==="sea"&&levels[flow.level].basic&&support.zoom?regions[seaRegion[q.t.id]]:null;zoomTo(reg||null);
+  const wantZoom=support.zoom&&(levels[flow.level].basic||isNarrow());const reg=wantZoom?(q.kind==="sea"?regions[seaRegion[q.t.id]]:basins[curRegion[q.t.id]]):null;zoomTo(reg||null);
   speak(q.kind==="temp"?q.t.name+". Lämmin vai kylmä?":"Missä on "+q.t.name+"?");
   if(q.kind==="temp"){
     setClass(x=>x.id===q.t.id?"active":"dim");setSeaClass(()=>"dim");
@@ -414,10 +438,10 @@ function flowAnswer(a){
   const tip=(!ok||support.calm)?(q.kind==="sea"?`<p class="tip">${q.t.tip||""}</p>`:`<p class="tip">${q.t.gyre||""}</p>`):"";
   panel.innerHTML=flowHeader()+`<div class="feedback ${ok?"ok":"no"}">${what}</div>`+tip+cheer+`<div class="row"><button id="next">Seuraava</button></div>`;
   const nb=document.getElementById("next");nb.onclick=nextFlow;nb.focus();
-  if(!support.calm)setTimeout(()=>{if(flow.q===q&&flow.busy)nextFlow()},ok?1100:2600);
+  if(!support.calm)flow.adv=setTimeout(()=>{flow.adv=null;if(flow.q===q&&flow.busy)nextFlow()},ok?1100:2600);
 }
 function endFlow(){
-  flow.done=true;clearInterval(flow.timer);flow.timer=null;setClass(()=>"");setSeaClass(()=>"");
+  flow.done=true;clearInterval(flow.timer);flow.timer=null;if(flow.adv){clearTimeout(flow.adv);flow.adv=null}setClass(()=>"");setSeaClass(()=>"");
   const acc=flow.asked?Math.round(flow.right/flow.asked*100):0;
   const miss=[...flow.missed.entries()].sort((a,b)=>b[1]-a[1]).slice(0,support.calm?2:4).map(([k])=>{const [kind,id]=k.split(":");const t=kind==="s"?seas.find(x=>x.id===id):currents.find(x=>x.id===id);return `<li>${t.name}${kind==="t"?" (lämmin vai kylmä)":""}</li>`}).join("");
   zoomTo(null);
@@ -433,6 +457,13 @@ function askSea(){
   if(quiz.i>=quiz.order.length){panel.innerHTML=`<h2>Valmis</h2><p>Oikein ${quiz.right} / ${quiz.order.length}.</p><div class="row"><button id="again">Uusi kierros</button><button id="back">Takaisin</button></div>`;document.getElementById("again").onclick=()=>setMode("sea");document.getElementById("back").onclick=()=>setMode("flow");setSeaClass(()=>"");return;}
   quiz.locked=false;setSeaClass(()=>"");
   panel.innerHTML=`<h2>Etsi merialue</h2><p class="score">${quiz.i+1} / ${quiz.order.length} · oikein ${quiz.right}</p><p class="quiz-q">Missä on ${quiz.order[quiz.i].name}?</p><p>Klikkaa sitä kartalla.</p>`;
+}
+function nudge(txt){let p=document.getElementById("miss");if(!p){p=document.createElement("p");p.className="tip";p.id="miss";panel.appendChild(p)}p.textContent=txt;}
+function onMiss(){
+  const parts=[];if(document.getElementById("showseas").checked)parts.push("ympyrää");if(document.getElementById("showcur").checked)parts.push("nuolta");
+  const txt="Tuo kohta ei ole mikään merkitty kohde. Klikkaa "+(parts.join(" tai ")||"karttaa")+".";
+  if(mode==="flow"){if(!flow.q||flow.busy||flow.done||flow.q.kind==="temp")return;nudge(txt);}
+  else if((mode==="sea"||mode==="name")&&quiz&&!quiz.locked)nudge(txt);
 }
 function onPickSea(sd){
   if(mode==="flow"){flowAnswer({sea:sd});return;}
