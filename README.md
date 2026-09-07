@@ -9,6 +9,7 @@ Pelit ovat julkaistuna GitHub Pagesissa: https://juhanajuhana.github.io/oppimisp
 | Peli | Aine | Linkki |
 | --- | --- | --- |
 | Maailman meret: merialueet ja merivirrat | Maantiede | [merivirrat/](https://juhanajuhana.github.io/oppimispelit/merivirrat/) |
+| Ruotsin sanajärjestys: suora ja käänteinen | Ruotsi | [sanajarjestys/](https://juhanajuhana.github.io/oppimispelit/sanajarjestys/) |
 
 ## Skilli
 

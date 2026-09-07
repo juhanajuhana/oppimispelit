@@ -45,3 +45,19 @@ Pelin arvo ei ole kysymysten määrässä vaan siinä, että jokainen kohde on k
 ## Kun aloitat uuden aineen
 
 Katso materiaalia ja kysy itseltäsi, mikä on sen "kartta": biologiassa solukuva tai elimistö, historiassa aikajana, kemiassa jaksollinen järjestelmä tai reaktiokaavio, kielissä sanaston teemakartta. Kohteet sijoitetaan siihen. Sitten sama polku kuin tänään: tutkittava näkymä, kolme kerrosta kontekstia jokaiselle kohteelle (sijainti/vihje, ryhmä, miksi sillä on väliä), kolmen tason harjoittelu, Flow-sessio, tuki piilossa. Näytä käyttäjälle ensin Tutki-tila ja pyydä tarkistamaan sisältö, ennen kuin puhutte harjoittelusta. Valmis peli tallennetaan tähän repoon omaan kansioonsa nimellä `index.html`, ja siihen lisätään linkki etusivulle (`index.html`) ja README:n taulukkoon.
+
+## Toinen peli: ruotsin sanajärjestys (kielioppi ilman karttaa)
+
+Toinen peli tehtiin ruotsin päälauseen sanajärjestyksestä (`sanajarjestys/index.html`). Se osoitti, että sama runko toimii, kun "kartta" ei ole kuva vaan kaavio. Mitä siitä kannattaa ottaa mukaan seuraavaan kielioppipeliin:
+
+**Kaavio on kartta.** Neljä saraketta – Alku | Verbi | Subjekti | Loput – ja rivit ovat saman lauseen eri versiot (suora, ajanmääre alussa, paikanmääre alussa, kysymyssana, kysymys ilman kysymyssanaa). Kun rivit ovat samassa ruudukossa, verbisarake pysyy paikallaan ja subjekti näkyy siirtyvän. Se on koko sääntö yhdellä silmäyksellä, eikä sitä tarvitse selittää.
+
+**Yksi peruslause, monta muunnosta.** Lauseet tallennettiin lohkoina rooleineen (subjekti, verbi, toinen verbi, inte, objekti, paikka, aika, kysymyssana), ja kaikki versiot sekä väärät vaihtoehdot generoidaan koodilla. 18 lauseesta tuli 91 muunnosta, ja jokainen väärä vaihtoehto on juuri se suomalaisen tyypillinen virhe (subjekti ennen verbiä alun jälkeen). Kysymyksissä "jag" vaihtuu "du":ksi, muuten kysymys kuulostaa oudolta. Aja generaattori Nodella ja lue kaikki lauseet läpi ennen selainta – siinä näkyy heti, jos lopun järjestys (inte → toinen verbi → objekti → paikka → aika) tuottaa jotain, mitä kukaan ei sanoisi.
+
+**Järjestäminen napauttamalla, ei raahaamalla.** Lohkot ovat sanaryhmiä ("till Stockholm", "i morgon"), eivät yksittäisiä sanoja, jotta harjoitus koskee järjestystä eikä sanastoa. Alku on annettu valmiiksi (kysymyksessä ilman kysymyssanaa se on tyhjä viiva), ja viimeinen lohko asettuu itsestään, koska sille ei ole vaihtoehtoa. Väärän vastauksen palaute kertoo, mikä kerros petti: verbi ei ollut toisena, subjekti ei ollut verbin jälkeen, tai vain loppuosan järjestys. Oma järjestys ja oikea näytetään rinnakkain.
+
+**Kerrokset kieliopissa.** Perus tunnistaa (suora vai käänteinen, kumpi lause on oikein), Keski järjestää kaavioon otsikoiden ja värien avulla, Vaikea järjestää ilman kaaviota ja lisää inte-lauseet ja kaksi verbiä. "Miksi"-kysymys on tässä "mikä on alussa", ja se kuuluu Keski- ja Vaikea-tasoille.
+
+**Yhden asian harjoitukset kannattaa tehdä samalla koneistolla.** Sen sijaan, että jokaiselle harjoitustyypille tehtäisiin oma tila, Flow-sessio saa parametrin: kysymystyypit ja kysymysmäärä (12 kysymystä, ei ajastinta). Sama palaute, sama kertaus ja sama loppuyhteenveto ilman kopiokoodia.
+
+**Ääneen luku on ruotsiksi.** `SpeechSynthesis` kielellä `sv-SE`, oikean lauseen kuuntelu on nappina jokaisessa palautteessa ja Tutki-tilassa, ja tukiasetuksena se luetaan automaattisesti.

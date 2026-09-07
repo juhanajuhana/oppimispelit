@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruotsin sanajärjestys – suora ja käänteinen</title>
+<style>
+  :root{
+    --ink:#1c2a36; --muted:#5b6b78; --page:#f7f9fb; --panel:#ffffff; --line:#e1e7ec; --accent:#1f6f8b; --focus:#f2b134;
+    --S:#2757a8; --S-bg:#e3ebf7; --V:#d1452b; --V-bg:#fbe6e2; --T:#2e8b57; --T-bg:#e4f3e6; --P:#c2641a; --P-bg:#fbeedd; --Q:#6b3fa0; --Q-bg:#ece5f6; --O:#5b6b78; --O-bg:#eef1f4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;line-height:1.45}
+  header{max-width:820px;margin:0 auto;padding:18px 22px 4px}
+  h1{font-size:26px;margin:0;font-weight:600;letter-spacing:-.01em}
+  header p{margin:2px 0 0;color:var(--muted);font-size:15px}
+  nav{display:flex;gap:6px;padding:10px 22px 12px;flex-wrap:wrap;max-width:820px;margin:0 auto}
+  nav button{border:1px solid #d4dbe1;background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
+  nav button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  nav button.flow-btn{border-color:var(--accent);color:var(--accent)}
+  nav button.flow-btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  nav button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  main{max-width:820px;margin:0 auto;padding:0 22px 40px}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;min-height:260px}
+  .stage h2{margin:0 0 6px;font-size:20px;font-weight:600}
+  .stage h3{margin:0 0 4px;font-size:17px;font-weight:600}
+  .stage p{margin:0 0 10px;font-size:14.5px}
+  .muted{color:var(--muted)}
+  .fi{color:var(--muted);font-style:italic}
+  .quiz-q{font-size:18px;font-weight:600;margin:6px 0 10px}
+  .sv{font-size:20px;font-weight:600;margin:4px 0 8px}
+  .start{font-size:20px;font-weight:600;color:var(--ink)}
+  /* schema */
+  .schema{display:grid;grid-template-columns:auto auto auto minmax(min-content,1fr);gap:4px 6px;align-items:start;margin:10px 0 12px;overflow-x:auto;padding-bottom:2px}
+  .schema .hd{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:2px 4px;border-bottom:2px solid var(--line)}
+  .schema .hd.v{color:var(--V);border-color:var(--V)}
+  .schema .cap{grid-column:1/-1;font-size:12.5px;color:var(--muted);padding:8px 4px 0}
+  .schema .cap b{color:var(--ink);font-weight:600}
+  .schema .cap .known{color:var(--T);font-weight:600;margin-left:6px}
+  .schema .cell{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:40px;padding:3px 4px;border-radius:6px}
+  .last{display:inline-flex;align-items:center;gap:4px}
+  .prow{display:contents;cursor:pointer}
+  .prow .cell{background:transparent;transition:background .15s}
+  .prow:hover .cell,.prow:focus-visible .cell{background:#f0f4f7}
+  .prow.active .cell{background:#eaf3f7;outline:1px solid #bcd6e2}
+  .prow.active .cap b{color:var(--accent)}
+  .none{color:#b3bec7;padding:0 6px;font-size:18px;line-height:1}
+  .chip{display:inline-flex;align-items:center;border:1.5px solid #cbd3da;background:#fff;color:var(--ink);border-radius:8px;padding:7px 12px;font:inherit;font-size:16px;line-height:1.25;cursor:default;text-align:left;min-height:38px}
+  .chip.S{border-color:var(--S);background:var(--S-bg)} .chip.V{border-color:var(--V);background:var(--V-bg)} .chip.T{border-color:var(--T);background:var(--T-bg)}
+  .chip.P{border-color:var(--P);background:var(--P-bg)} .chip.Q{border-color:var(--Q);background:var(--Q-bg)} .chip.O{border-color:#aeb8c1;background:var(--O-bg)}
+  .chip.fixed{font-weight:600}
+  button.chip{cursor:pointer}
+  button.chip:hover{filter:brightness(.97)} button.chip:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+  .slot{display:inline-block;width:64px;min-height:38px;border:1.5px dashed #c3ccd4;border-radius:8px;background:#fafbfc}
+  .slot.next{border-color:var(--accent);background:#eef6f9;box-shadow:inset 0 0 0 1px #d5e6ee}
+  .linear{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0 12px;padding:10px;border:1px solid var(--line);border-radius:8px;min-height:60px}
+  .linear .end{font-size:22px;color:var(--muted)}
+  .bank{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 8px;min-height:44px}
+  .legend{display:flex;gap:10px 14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  .legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1.5px solid}
+  .legend .S::before{background:var(--S-bg);border-color:var(--S)} .legend .V::before{background:var(--V-bg);border-color:var(--V)}
+  .legend .T::before{background:var(--T-bg);border-color:var(--T)} .legend .P::before{background:var(--P-bg);border-color:var(--P)}
+  .legend .Q::before{background:var(--Q-bg);border-color:var(--Q)} .legend .O::before{background:var(--O-bg);border-color:#aeb8c1}
+  .picker{display:flex;gap:6px;align-items:center;margin:4px 0 6px}
+  .picker select{flex:1;min-width:0;font:inherit;font-size:14px;padding:7px 8px;border:1px solid #d4dbe1;border-radius:6px;background:#fff;color:var(--ink)}
+  .picker button{border:1px solid #d4dbe1;background:#fff;border-radius:6px;font:inherit;font-size:18px;line-height:1;padding:6px 12px;cursor:pointer;color:var(--ink)}
+  .explain{border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
+  .feedback{padding:10px 12px;border-radius:6px;font-size:14.5px;margin-top:10px}
+  .feedback.ok{background:#e4f3e6;color:#1f5e2b} .feedback.no{background:#fbe6e2;color:#8a2a1a}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .row button,.stage > button,.opts button{border:1px solid #d4dbe1;background:#fff;color:var(--ink);padding:9px 14px;border-radius:6px;font:inherit;font-size:15px;cursor:pointer;text-align:left}
+  .row button:hover,.opts button:hover{border-color:var(--accent)}
+  .row button:focus-visible,.opts button:focus-visible,.stage > button:focus-visible{outline:3px solid var(--focus)}
+  .row button small,.opts button small{display:block;font-size:12.5px;color:var(--muted);font-weight:400}
+  .opts{display:grid;gap:8px;margin-top:8px}
+  .opts button.big{font-size:17px;padding:12px 14px}
+  .opts button.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .row button.a{border-color:var(--S);color:var(--S)} .row button.b{border-color:var(--V);color:var(--V)}
+  .timer{height:6px;background:#e4ebf0;border-radius:3px;overflow:hidden;margin:2px 0 12px}
+  .timer i{display:block;height:100%;background:var(--accent);width:100%;transition:width 1s linear}
+  .stats{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap}
+  .stats b{color:var(--ink);font-size:16px}
+  .streak{color:#c2641a}
+  .kind{font-size:12px;color:var(--muted);margin-top:10px}
+  .cheer{font-size:15px;margin-top:8px}
+  .cheer.big{font-size:18px;font-weight:600;color:var(--accent)}
+  .review{font-size:14px;margin-top:8px;padding-left:18px}
+  .review li{margin:3px 0}
+  .tip{font-size:14px;color:var(--muted);margin-top:6px}
+  .stage details{margin-top:14px;font-size:14px;color:var(--muted)}
+  .stage details summary{cursor:pointer}
+  .stage details summary:focus-visible{outline:3px solid var(--focus)}
+  .practice-list{list-style:none;padding:0;margin:6px 0 0}
+  .practice-list button{width:100%;text-align:left;margin-top:6px;padding:8px 12px;border:1px solid #d4dbe1;background:#fff;border-radius:6px;font:inherit;cursor:pointer;color:var(--ink)}
+  button.lvl{display:block;width:100%;text-align:left;margin-top:8px;padding:10px 12px;border:1px solid #d4dbe1;background:#fff;border-radius:6px;font:inherit;cursor:pointer;color:var(--ink)}
+  button.lvl:hover{border-color:var(--accent)} button.lvl:focus-visible{outline:3px solid var(--focus)}
+  button.lvl span{font-size:13px;color:var(--muted)}
+  .support{display:grid;gap:6px;margin-top:8px;font-size:14px;color:var(--ink)}
+  .support label{display:flex;gap:6px;align-items:flex-start}
+  .support .len{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;align-items:center}
+  .support .len label{border:1px solid #d4dbe1;border-radius:999px;padding:3px 10px;align-items:center}
+  .listen{border:1px solid #d4dbe1;background:#fff;border-radius:999px;font:inherit;font-size:13px;padding:4px 10px;cursor:pointer;color:var(--ink);margin-left:6px;vertical-align:middle}
+  .listen:focus-visible{outline:3px solid var(--focus)}
+  .rules ol{padding-left:20px;margin:8px 0 0}
+  .rules li{margin:4px 0}
+  body.big .chip{font-size:19px;padding:9px 14px} body.big .slot{min-height:44px;width:72px} body.big .sv,body.big .start{font-size:23px}
+  @media (max-width:480px){main,header,nav{padding-left:12px;padding-right:12px} h1{font-size:22px} .stage{padding:14px 12px} .chip{padding:4px 6px;font-size:14px;min-height:32px;border-width:1px} .schema{gap:4px 3px} .schema .cell{padding:2px 2px;min-height:36px} .schema .hd{font-size:11px;letter-spacing:.02em;padding:2px 2px} .slot{width:52px;min-height:34px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Ruotsin sanajärjestys: suora ja käänteinen</h1>
+  <p>Päälause: väitelause, ajanmääre tai paikanmääre alussa, kysymyslause.</p>
+</header>
+<nav aria-label="Tila">
+  <button id="m-explore" aria-pressed="true">Tutki kaaviota</button>
+  <button id="m-flow" aria-pressed="false" class="flow-btn">Harjoittele</button>
+</nav>
+<main>
+  <div class="stage" id="stage"></div>
+</main>
+<script>
+// ---------- data: base sentences as chunks. Roles: S subjekti, V verbi, V2 toinen verbi, N kieltosana, O objekti, P paikka, T aika.
+// sq = subject used in questions (jag -> du). q = question words: w, drop (which chunk the question word replaces), fi.
+const sentences=[
+  {id:"stockholm",S:"vi",V:"åker",P:"till Stockholm",T:"i morgon",
+   fi:{S:"Me lähdemme huomenna Tukholmaan.",T:"Huomenna me lähdemme Tukholmaan.",P:"Tukholmaan me lähdemme huomenna.",Y:"Lähdemmekö me huomenna Tukholmaan?"},
+   q:[{w:"när",drop:"T",fi:"Milloin me lähdemme Tukholmaan?"},{w:"vart",drop:"P",fi:"Minne me lähdemme huomenna?"}]},
+  {id:"har",S:"jag",sq:"du",V:"bor",P:"här",T:"nu",
+   fi:{S:"Minä asun täällä nyt.",T:"Nyt minä asun täällä.",P:"Täällä minä asun nyt.",Y:"Asutko sinä täällä nyt?"},
+   q:[{w:"var",drop:"P",fi:"Missä sinä asut nyt?"}]},
+  {id:"goteborg",S:"hon",V:"bor",P:"i Göteborg",T:"nu",
+   fi:{S:"Hän asuu nyt Göteborgissa.",T:"Nyt hän asuu Göteborgissa.",P:"Göteborgissa hän asuu nyt.",Y:"Asuuko hän nyt Göteborgissa?"},
+   q:[{w:"var",drop:"P",fi:"Missä hän asuu nyt?"}]},
+  {id:"bok",S:"jag",sq:"du",V:"läser",O:"en bok",P:"hemma",T:"på kvällen",
+   fi:{S:"Minä luen kirjaa kotona illalla.",T:"Illalla minä luen kirjaa kotona.",P:"Kotona minä luen kirjaa illalla.",Y:"Luetko sinä kirjaa kotona illalla?"},
+   q:[{w:"vad",drop:"O",fi:"Mitä sinä luet kotona illalla?"},{w:"när",drop:"T",fi:"Milloin sinä luet kirjaa kotona?"}]},
+  {id:"lunch",S:"de",V:"äter",O:"lunch",P:"i skolan",T:"klockan tolv",
+   fi:{S:"He syövät lounasta koulussa kello kaksitoista.",T:"Kello kaksitoista he syövät lounasta koulussa.",P:"Koulussa he syövät lounasta kello kaksitoista.",Y:"Syövätkö he lounasta koulussa kello kaksitoista?"},
+   q:[{w:"när",drop:"T",fi:"Milloin he syövät lounasta koulussa?"},{w:"var",drop:"P",fi:"Missä he syövät lounasta kello kaksitoista?"}]},
+  {id:"gitarr",S:"min bror",sq:"din bror",V:"spelar",O:"gitarr",T:"varje dag",
+   fi:{S:"Veljeni soittaa kitaraa joka päivä.",T:"Joka päivä veljeni soittaa kitaraa.",Y:"Soittaako veljesi kitaraa joka päivä?"},
+   q:[{w:"vad",drop:"O",fi:"Mitä veljesi soittaa joka päivä?"}]},
+  {id:"prov",S:"eleverna",V:"har",O:"prov",T:"på fredag",
+   fi:{S:"Oppilailla on koe perjantaina.",T:"Perjantaina oppilailla on koe.",Y:"Onko oppilailla koe perjantaina?"},
+   q:[{w:"när",drop:"T",fi:"Milloin oppilailla on koe?"}]},
+  {id:"stan",S:"vi",V:"träffas",P:"på stan",T:"på fredag",
+   fi:{S:"Me tapaamme kaupungilla perjantaina.",T:"Perjantaina me tapaamme kaupungilla.",P:"Kaupungilla me tapaamme perjantaina.",Y:"Tapaammeko me kaupungilla perjantaina?"},
+   q:[{w:"var",drop:"P",fi:"Missä me tapaamme perjantaina?"},{w:"när",drop:"T",fi:"Milloin me tapaamme kaupungilla?"}]},
+  {id:"sno",S:"det",V:"snöar",P:"i Lappland",T:"i november",
+   fi:{S:"Lapissa sataa lunta marraskuussa.",T:"Marraskuussa Lapissa sataa lunta.",P:"Lapissa sataa lunta marraskuussa.",Y:"Sataako Lapissa lunta marraskuussa?"},
+   q:[{w:"när",drop:"T",fi:"Milloin Lapissa sataa lunta?"}]},
+  {id:"sjukhus",S:"mamma",V:"jobbar",P:"på sjukhuset",T:"på helgen",
+   fi:{S:"Äiti on töissä sairaalassa viikonloppuna.",T:"Viikonloppuna äiti on töissä sairaalassa.",P:"Sairaalassa äiti on töissä viikonloppuna.",Y:"Onko äiti töissä sairaalassa viikonloppuna?"},
+   q:[{w:"var",drop:"P",fi:"Missä äiti on töissä viikonloppuna?"},{w:"när",drop:"T",fi:"Milloin äiti on töissä sairaalassa?"}]},
+  {id:"kompis",S:"min kompis",sq:"din kompis",V:"kommer",P:"hit",T:"på söndag",
+   fi:{S:"Kaverini tulee tänne sunnuntaina.",T:"Sunnuntaina kaverini tulee tänne.",P:"Tänne kaverini tulee sunnuntaina.",Y:"Tuleeko kaverisi tänne sunnuntaina?"},
+   q:[{w:"när",drop:"T",fi:"Milloin kaverisi tulee tänne?"}]},
+  {id:"tag",S:"tåget",V:"går",P:"från Helsingfors",T:"klockan åtta",
+   fi:{S:"Juna lähtee Helsingistä kello kahdeksan.",T:"Kello kahdeksan juna lähtee Helsingistä.",P:"Helsingistä juna lähtee kello kahdeksan.",Y:"Lähteekö juna Helsingistä kello kahdeksan?"},
+   q:[{w:"när",drop:"T",fi:"Milloin juna lähtee Helsingistä?"},{w:"varifrån",drop:"P",fi:"Mistä juna lähtee kello kahdeksan?"}]},
+  // two verbs
+  {id:"fotboll",S:"vi",V:"ska",V2:"spela",O:"fotboll",T:"på lördag",
+   fi:{S:"Me pelaamme lauantaina jalkapalloa.",T:"Lauantaina me pelaamme jalkapalloa.",Y:"Pelaammeko me lauantaina jalkapalloa?"},
+   q:[{w:"när",drop:"T",fi:"Milloin me pelaamme jalkapalloa?"},{w:"vad",drop:"O",fi:"Mitä me pelaamme lauantaina?"}]},
+  {id:"cykel",S:"han",V:"har",V2:"köpt",O:"en ny cykel",T:"i år",
+   fi:{S:"Hän on ostanut uuden pyörän tänä vuonna.",T:"Tänä vuonna hän on ostanut uuden pyörän.",Y:"Onko hän ostanut uuden pyörän tänä vuonna?"},
+   q:[{w:"vad",drop:"O",fi:"Mitä hän on ostanut tänä vuonna?"}]},
+  {id:"laxor",S:"du",V:"måste",V2:"göra",O:"läxorna",T:"i dag",
+   fi:{S:"Sinun täytyy tehdä läksyt tänään.",T:"Tänään sinun täytyy tehdä läksyt.",Y:"Täytyykö sinun tehdä läksyt tänään?"},
+   q:[{w:"vad",drop:"O",fi:"Mitä sinun täytyy tehdä tänään?"}]},
+  {id:"sverige",S:"jag",sq:"du",V:"vill",V2:"åka",P:"till Sverige",T:"på sommaren",
+   fi:{S:"Minä haluan matkustaa Ruotsiin kesällä.",T:"Kesällä minä haluan matkustaa Ruotsiin.",P:"Ruotsiin minä haluan matkustaa kesällä.",Y:"Haluatko sinä matkustaa Ruotsiin kesällä?"},
+   q:[{w:"vart",drop:"P",fi:"Minne sinä haluat matkustaa kesällä?"},{w:"när",drop:"T",fi:"Milloin sinä haluat matkustaa Ruotsiin?"}]},
+  // inte
+  {id:"komma",S:"jag",sq:"du",V:"kan",N:"inte",V2:"komma",T:"i kväll",
+   fi:{S:"Minä en voi tulla tänä iltana.",T:"Tänä iltana minä en voi tulla.",Y:"Etkö sinä voi tulla tänä iltana?"},
+   q:[{w:"varför",drop:null,keepN:true,fi:"Miksi sinä et voi tulla tänä iltana?"}]},
+  {id:"kaffe",S:"hon",V:"dricker",N:"inte",O:"kaffe",T:"på morgonen",
+   fi:{S:"Hän ei juo kahvia aamulla.",T:"Aamulla hän ei juo kahvia.",Y:"Eikö hän juo kahvia aamulla?"},
+   q:[{w:"vad",drop:"O",fi:"Mitä hän juo aamulla?"}]},
+];
+const ROLE={S:"Subjekti",V:"Verbi",V2:"Toinen verbi",N:"Kieltosana",O:"Objekti",P:"Paikanmääre",T:"Ajanmääre",Q:"Kysymyssana"};
+const COLOR={S:"S",V:"V",V2:"O",N:"O",O:"O",P:"P",T:"T",Q:"Q"};
+const REST=["N","V2","O","P","T"];
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+const PAT={
+  S:{name:"Suora sanajärjestys",inv:false,rule:"Subjekti ensin, verbi heti sen jälkeen.",
+     why:v=>`Alussa on subjekti "${cap(v.subj)}", joten verbi "${v.V}" tulee heti sen perään ja loput seuraavat.`},
+  T:{name:"Ajanmääre alussa",inv:true,rule:"Ajanmääre alussa → verbi toisena, subjekti vasta verbin jälkeen.",
+     why:v=>`Alussa on ajanmääre "${cap(v.alku.t)}". Verbi "${v.V}" pysyy toisella paikalla, joten subjekti "${v.subj}" siirtyy verbin jälkeen. Suomessa subjekti jää verbin eteen, ruotsissa ei.`},
+  P:{name:"Paikanmääre alussa",inv:true,rule:"Paikanmääre alussa → verbi toisena, subjekti vasta verbin jälkeen.",
+     why:v=>`Alussa on paikanmääre "${cap(v.alku.t)}". Verbi "${v.V}" pysyy toisella paikalla, joten subjekti "${v.subj}" siirtyy verbin jälkeen. Suomessa subjekti jää verbin eteen, ruotsissa ei.`},
+  Q:{name:"Kysymyssana alussa",inv:true,rule:"Kysymyssana alussa → verbi toisena, subjekti kolmantena.",
+     why:v=>`Alussa on kysymyssana "${cap(v.alku.t)}". Verbi "${v.V}" tulee heti sen jälkeen ja subjekti "${v.subj}" vasta kolmantena.`},
+  Y:{name:"Kysymys ilman kysymyssanaa",inv:true,rule:"Alku on tyhjä → verbi ensimmäisenä, subjekti heti perässä.",
+     why:v=>`Kysymyksessä ilman kysymyssanaa alku on tyhjä: verbi "${cap(v.V)}" aloittaa ja subjekti "${v.subj}" tulee heti sen jälkeen.`},
+};
+const PATS=["S","T","P","Q","Y"];
+const patsOf=s=>PATS.filter(p=>p==="S"||p==="Y"||(p==="T"&&s.T)||(p==="P"&&s.P)||(p==="Q"&&s.q&&s.q.length));
+function variant(s,pat,qi=0){
+  const q=pat==="Q"?s.q[qi%s.q.length]:null;
+  const subj=(pat==="Q"||pat==="Y")?(s.sq||s.S):s.S;
+  const ch=(r,t)=>({r,t:t||s[r]});
+  const rest=(drop,dropN)=>REST.filter(r=>s[r]&&r!==drop&&!(dropN&&r==="N")).map(r=>ch(r));
+  let seq,fi;
+  if(pat==="S"){seq=[ch("S",subj),ch("V"),...rest()];fi=s.fi.S;}
+  else if(pat==="T"){seq=[ch("T"),ch("V"),ch("S",subj),...rest("T")];fi=s.fi.T;}
+  else if(pat==="P"){seq=[ch("P"),ch("V"),ch("S",subj),...rest("P")];fi=s.fi.P;}
+  else if(pat==="Q"){seq=[ch("Q",q.w),ch("V"),ch("S",subj),...rest(q.drop,!q.keepN)];fi=q.fi;}
+  else{seq=[ch("V"),ch("S",subj),...rest()];fi=s.fi.Y;}
+  const end=(pat==="Q"||pat==="Y")?"?":".";
+  return {s,pat,seq,alku:pat==="Y"?null:seq[0],subj,V:s.V,fi,end};
+}
+const text=(seq,end)=>cap(seq.map(c=>c.t).join(" "))+end;
+const svText=v=>text(v.seq,v.end);
+function wrongSeq(v){const a=v.seq.slice();const i=a.findIndex(c=>c.r==="V"),j=a.findIndex(c=>c.r==="S");[a[i],a[j]]=[a[j],a[i]];return a;}
+const briefWhy=v=>({S:`Alussa on subjekti "${cap(v.subj)}".`,T:`Alussa on ajanmääre "${cap(v.alku.t)}".`,P:`Alussa on paikanmääre "${cap(v.alku.t)}".`,Q:`Alussa on kysymyssana "${cap(v.alku.t)}".`,Y:"Kysymys ilman kysymyssanaa: verbi aloittaa."})[v.pat];
+
+// ---------- schema rendering
+const chipHTML=(c,colors,extra="",first=false)=>`<span class="chip ${colors?COLOR[c.r]:"plain"}${extra?" "+extra:""}" title="${ROLE[c.r]}">${first?cap(c.t):c.t}</span>`;
+const schemaHeader=()=>`<div class="hd">Alku</div><div class="hd v">Verbi</div><div class="hd">Subjekti</div><div class="hd">Loput</div>`;
+function rowCells(v,colors=true){
+  const inv=v.pat!=="S";
+  const alku=v.alku?chipHTML(v.alku,colors,"fixed",true):`<span class="none" aria-label="tyhjä">–</span>`;
+  const verb=chipHTML(v.seq.find(c=>c.r==="V"),colors,"",v.pat==="Y");
+  const subj=inv?chipHTML(v.seq.find(c=>c.r==="S"),colors):`<span class="none" aria-label="tyhjä">–</span>`;
+  const restStart=inv?3:2;
+  const tail=v.seq.slice(v.pat==="Y"?2:restStart).map(c=>chipHTML(c,colors));const last=tail.pop()||"";const rest=tail.join("")+`<span class="last">${last}<span class="end muted">${v.end}</span></span>`;
+  return `<div class="cell alku">${alku}</div><div class="cell">${verb}</div><div class="cell">${subj}</div><div class="cell rest">${rest}</div>`;
+}
+const sentenceSchema=(v,colors=true)=>`<div class="schema">${schemaHeader()}${rowCells(v,colors)}</div>`;
+const legendHTML=()=>`<div class="legend"><span class="S">Subjekti</span><span class="V">Verbi</span><span class="T">Ajanmääre</span><span class="P">Paikanmääre</span><span class="Q">Kysymyssana</span><span class="O">Muu: objekti, toinen verbi, inte</span></div>`;
+const rulesHTML=()=>`<details class="rules"><summary>Säännöt lyhyesti</summary><ol>
+<li>Päälauseessa taipunut verbi on <b>aina toisella paikalla</b>.</li>
+<li>Kun lause alkaa subjektilla, sanajärjestys on <b>suora</b>: subjekti – verbi.</li>
+<li>Kun lause alkaa jollain muulla (ajanmääre, paikanmääre, kysymyssana), sanajärjestys on <b>käänteinen</b>: verbi – subjekti.</li>
+<li>Kysymys ilman kysymyssanaa: alku on tyhjä, joten verbi on ensimmäisenä ja subjekti heti perässä.</li>
+<li>Kun verbejä on kaksi (ska, kan, vill, har, måste + pääverbi), vain ensimmäinen on toisella paikalla. Pääverbi tulee subjektin jälkeen.</li>
+<li>Lopun järjestys: inte → toinen verbi → objekti → paikka → aika.</li>
+<li>Vertaa suomeen: "Huomenna me lähdemme" – suomessa subjekti pysyy verbin edessä, ruotsissa "I morgon åker vi".</li></ol></details>`;
+const listenBtn=txt=>("speechSynthesis" in window)?`<button class="listen" data-say="${txt.replace(/"/g,"&quot;")}" type="button">🔊 Kuuntele</button>`:"";
+
+// ---------- state
+const stage=document.getElementById("stage");
+let mode="explore";
+const ex={i:0,pat:"S"};
+const flow={level:null,queue:[],asked:0,right:0,streak:0,best:0,missed:new Map(),left:0,busy:false,q:null,done:true,adv:null,timer:null,limit:0};
+let bq=null;
+const support={calm:false,labels:false,speak:false,big:false,minutes:10,showKnown:true};
+const known=new Set(),streaks=new Map();
+const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(v=>v[1]);
+function speak(txt,force){if(!(force||support.speak)||!("speechSynthesis" in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang="sv-SE";u.rate=.9;speechSynthesis.speak(u);}catch(e){}}
+function markKnown(key,ok){const n=ok?(streaks.get(key)||0)+1:0;streaks.set(key,n);if(n>=3)known.add(key);}
+const isKnown=p=>support.showKnown&&known.has("p:"+p);
+
+// ---------- modes
+function setMode(m){
+  mode=m;bq=null;
+  document.getElementById("m-explore").setAttribute("aria-pressed",m==="explore");document.getElementById("m-flow").setAttribute("aria-pressed",m==="flow");
+  if(flow.timer){clearInterval(flow.timer);flow.timer=null}if(flow.adv){clearTimeout(flow.adv);flow.adv=null}flow.done=true;
+  if(m==="explore")renderExplore();else chooseLevel();
+}
+["explore","flow"].forEach(k=>document.getElementById("m-"+k).addEventListener("click",()=>setMode(k)));
+
+// ---------- explore
+function renderExplore(){
+  const s=sentences[ex.i];const pats=patsOf(s);if(!pats.includes(ex.pat))ex.pat="S";
+  stage.innerHTML=`<h2>Tutki kaaviota</h2><p>Päälauseessa verbi on aina toisena. Katso, miten sama lause muuttuu, kun alku vaihtuu – ja mikä ei muutu. Klikkaa riviä.</p>
+  <div class="picker"><button id="prev" aria-label="Edellinen lause">‹</button><select id="sel" aria-label="Valitse lause">${sentences.map((x,i)=>`<option value="${i}"${i===ex.i?" selected":""}>${i+1}. ${x.fi.S}</option>`).join("")}</select><button id="next" aria-label="Seuraava lause">›</button></div>
+  <div class="schema" id="schema">${schemaHeader()}${pats.map(p=>{const v=variant(s,p,0);return `<div class="prow${p===ex.pat?" active":""}" data-p="${p}" role="button" tabindex="0" aria-pressed="${p===ex.pat}"><div class="cap"><b>${PAT[p].name}</b>${isKnown(p)?'<span class="known">✓ osaat</span>':""}</div>${rowCells(v,true)}</div>`}).join("")}</div>
+  <div class="explain" id="explain"></div>${legendHTML()}${rulesHTML()}`;
+  renderExplain();
+  document.getElementById("prev").onclick=()=>{ex.i=(ex.i-1+sentences.length)%sentences.length;renderExplore()};
+  document.getElementById("next").onclick=()=>{ex.i=(ex.i+1)%sentences.length;renderExplore()};
+  document.getElementById("sel").onchange=e=>{ex.i=+e.target.value;renderExplore()};
+  stage.querySelectorAll(".prow").forEach(r=>{const pick=()=>{ex.pat=r.dataset.p;stage.querySelectorAll(".prow").forEach(x=>{x.classList.toggle("active",x===r);x.setAttribute("aria-pressed",x===r)});renderExplain();};r.onclick=pick;r.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}};});
+}
+function renderExplain(){
+  const v=variant(sentences[ex.i],ex.pat,0),P=PAT[ex.pat];
+  document.getElementById("explain").innerHTML=`<h3>${P.name} <span class="muted" style="font-weight:400">– ${P.inv?"käänteinen":"suora"}</span></h3><p class="sv">${svText(v)}${listenBtn(svText(v))}</p><p class="fi">${v.fi}</p><p>${P.why(v)}</p><p class="tip">${P.rule}</p>`;
+  speak(svText(v));
+}
+
+// ---------- practice: levels, pool
+const levels={
+  perus:{name:"Perus: tunnista",desc:"Suora vai käänteinen? Kumpi lause on oikein? Ei vielä sanojen järjestämistä.",kinds:["which","pick"],pool:"simple",basic:true,labels:true},
+  keski:{name:"Keski: järjestä",desc:"Järjestä sanat kaavioon. Kaavion otsikot ja värit auttavat. Mukana myös lauseita, joissa on kaksi verbiä.",kinds:["build","build","which","why"],pool:"mid",labels:true},
+  vaikea:{name:"Vaikea: kaikki sekaisin",desc:"Järjestä ilman kaaviota ja värejä. Mukana inte ja kaksi verbiä, kaikki kysymystyypit.",kinds:["build","build","pick","why"],pool:"all",labels:false},
+};
+const singles={
+  which:{name:"Suora vai käänteinen?",kinds:["which"],pool:"mid",limit:12,labels:true},
+  pick:{name:"Kumpi lause on oikein?",kinds:["pick"],pool:"mid",limit:12,labels:true},
+  build:{name:"Järjestä sanat",kinds:["build"],pool:"mid",limit:10,labels:true},
+  why:{name:"Mikä on alussa?",kinds:["why"],pool:"all",limit:12,labels:true},
+};
+const cfg=()=>levels[flow.level]||singles[flow.level];
+function buildFlowPool(){
+  const L=cfg();
+  const ss=sentences.filter(s=>L.pool==="all"||(L.pool==="mid"?!s.N:!s.N&&!s.V2));
+  const items=[];
+  ss.forEach(s=>patsOf(s).forEach(p=>L.kinds.forEach(k=>items.push({kind:k,s,pat:p,qi:Math.floor(Math.random()*4),key:"p:"+p}))));
+  const q=shuffle(items);
+  if(L.basic){const head=[];PATS.forEach(p=>{let n=0;for(let i=0;i<q.length&&n<3;i++){if(q[i].pat===p){head.push(q.splice(i,1)[0]);i--;n++;}}});return head.concat(q);}
+  return q;
+}
+function supportPanel(){
+  return `<details><summary>Tuki ja asetukset</summary><div class="support">
+  <label><input type="checkbox" id="sp-calm" ${support.calm?"checked":""}> Rauhallinen tila – ei automaattista siirtymää, virhe kysytään heti uudestaan, luvut vasta lopussa</label>
+  <label><input type="checkbox" id="sp-labels" ${support.labels?"checked":""}> Näytä kaavion otsikot ja värit myös vaikealla tasolla</label>
+  <label><input type="checkbox" id="sp-speak" ${support.speak?"checked":""}> Lue lause ääneen ruotsiksi</label>
+  <label><input type="checkbox" id="sp-big" ${support.big?"checked":""}> Suurempi teksti sanoissa</label>
+  <label><input type="checkbox" id="sp-known" ${support.showKnown?"checked":""}> Näytä osaamani rakenteet vihreällä kaaviossa</label>
+  <div class="len">Session pituus: ${[3,5,10].map(m=>`<label><input type="radio" name="sp-len" value="${m}" ${support.minutes===m?"checked":""}> ${m} min</label>`).join("")}</div>
+  </div></details>`;
+}
+function bindSupport(){
+  const b=(id,k)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{support[k]=e.checked;document.body.classList.toggle("calm",support.calm);document.body.classList.toggle("big",support.big);}};
+  b("sp-calm","calm");b("sp-labels","labels");b("sp-speak","speak");b("sp-big","big");b("sp-known","showKnown");
+  stage.querySelectorAll("[name=sp-len]").forEach(r=>r.onchange=()=>{support.minutes=+r.value});
+}
+function chooseLevel(){
+  flow.done=true;bq=null;
+  stage.innerHTML=`<h2>Harjoittele</h2><p>10 minuutin sessio sekalaisia kysymyksiä. Valitse taso:</p>`+
+    Object.entries(levels).map(([k,L])=>`<button class="lvl" data-l="${k}"><strong>${L.name}</strong><br><span>${L.desc}</span></button>`).join("")+
+    `<details><summary>Harjoittele yhtä asiaa</summary><ul class="practice-list">${Object.entries(singles).map(([k,L])=>`<li><button data-l="${k}">${L.name} <span class="muted">· ${L.limit} kysymystä</span></button></li>`).join("")}</ul></details>`+supportPanel();
+  bindSupport();
+  stage.querySelectorAll("[data-l]").forEach(b=>{b.onclick=()=>startFlow(b.dataset.l)});
+}
+
+// ---------- flow session
+let FLOW_SECONDS=600;
+const cheers={
+  ok:["Oikein.","Nappiin.","Juuri niin.","Hyvä.","Kyllä.","Verbi toisena – juuri näin.","Sinne se kuuluu."],
+  streak:{3:"Kolme putkeen – hyvä rytmi.",5:"Viisi peräkkäin. Nyt tämä alkaa istua.",8:"Kahdeksan! Sääntö on selvästi jo päässä.",12:"Kaksitoista putkeen – tämä on jo hallussa.",20:"Kaksikymmentä. Ei enää mitään opittavaa tähän kokeeseen."},
+  no:["Ei haittaa – nyt näet sen.","Läheltä. Tämä tulee kohta uudestaan.","Tämä on niitä, jotka jäävät mieleen vasta toisella kerralla.","Katso hetki, missä verbi on."],
+};
+function startFlow(level){
+  flow.level=level;const L=cfg();
+  FLOW_SECONDS=support.minutes*60;document.body.classList.toggle("calm",support.calm);document.body.classList.toggle("big",support.big);
+  Object.assign(flow,{queue:buildFlowPool(),asked:0,right:0,streak:0,best:0,missed:new Map(),left:FLOW_SECONDS,busy:false,q:null,done:false,adv:null,limit:L.limit||0});
+  if(flow.timer){clearInterval(flow.timer);flow.timer=null}if(flow.adv){clearTimeout(flow.adv);flow.adv=null}
+  if(!flow.limit)flow.timer=setInterval(()=>{flow.left--;const bar=document.getElementById("tbar");if(bar)bar.style.width=(flow.left/FLOW_SECONDS*100)+"%";const tt=document.getElementById("tleft");if(tt)tt.textContent=fmt(flow.left);if(flow.left<=0)endFlow();},1000);
+  nextFlow();
+}
+const fmt=sec=>`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
+function flowHeader(){
+  if(flow.limit){const n=Math.min(flow.busy?flow.asked:flow.asked+1,flow.limit);return support.calm?`<div class="stats"><span>kysymys <b>${n}/${flow.limit}</b></span></div>`:`<div class="stats"><span>kysymys <b>${n}/${flow.limit}</b></span><span>oikein <b>${flow.right}/${flow.asked}</b></span><span class="streak">putki <b>${flow.streak}</b></span></div>`;}
+  return `<div class="timer"><i id="tbar" style="width:${flow.left/FLOW_SECONDS*100}%"></i></div>
+  ${support.calm?"":`<div class="stats"><span>aikaa <b id="tleft">${fmt(flow.left)}</b></span><span>oikein <b>${flow.right}/${flow.asked}</b></span><span class="streak">putki <b>${flow.streak}</b></span></div>`}`;
+}
+const kindTxt={which:"suora vai käänteinen",pick:"kumpi on oikein",build:"järjestä sanat",why:"mikä on alussa"};
+function nextFlow(){
+  if(flow.done||mode!=="flow")return;
+  if(flow.adv){clearTimeout(flow.adv);flow.adv=null}
+  if(flow.limit&&flow.asked>=flow.limit){endFlow();return;}
+  if(!flow.queue.length)flow.queue=buildFlowPool();
+  const q=flow.q=flow.queue.shift();flow.busy=false;bq=null;
+  q.v=variant(q.s,q.pat,q.qi);const v=q.v;
+  let body="";
+  if(q.kind==="which"){
+    const start=v.alku?`<span class="start">${cap(v.alku.t)} …</span>`:`<span class="start">… ?</span> <span class="muted">(kysymys ilman kysymyssanaa)</span>`;
+    body=`<p class="fi">${v.fi}</p><p class="quiz-q">Ruotsiksi lause alkaa: ${start}</p><p>Suora vai käänteinen sanajärjestys?</p><div class="row"><button class="a" data-a="rak">Suora<small>subjekti – verbi</small></button><button class="b" data-a="inv">Käänteinen<small>verbi – subjekti</small></button></div>`;
+  }else if(q.kind==="pick"){
+    const right=svText(v),wrong=text(wrongSeq(v),v.end);const opts=shuffle([{t:right,ok:1},{t:wrong,ok:0}]);
+    body=`<p class="fi">${v.fi}</p><p class="quiz-q">Kumpi on oikein?</p><div class="opts">${opts.map(o=>`<button class="big" data-ok="${o.ok}">${o.t}</button>`).join("")}</div>`;
+  }else if(q.kind==="why"){
+    body=`<p class="sv">${svText(v)}</p><p class="fi">${v.fi}</p><p class="quiz-q">Mikä lauseen alussa on?</p><div class="opts">${[["S","Subjekti"],["T","Ajanmääre"],["P","Paikanmääre"],["Q","Kysymyssana"],["Y","Ei mitään – verbi aloittaa (kysymys ilman kysymyssanaa)"]].map(([p,t])=>`<button data-w="${p}">${t}</button>`).join("")}</div>`;
+  }else{
+    const L=cfg();const labels=L.labels||support.labels;
+    const chips=shuffle(v.seq.slice(v.alku?1:0).map((c,i)=>({...c,i})));
+    bq={v,chips,placed:[],used:new Set(),labels,colors:labels,total:chips.length};
+    const intro=v.pat==="Y"?"Kysymys ilman kysymyssanaa – alku on tyhjä. Napauta sanoja oikeassa järjestyksessä.":`Alku on annettu. Napauta sanoja oikeassa järjestyksessä.`;
+    body=`<p class="fi">${v.fi}</p><p class="quiz-q">Järjestä sanat.</p><p class="muted">${intro}</p><div id="area">${buildHTML()}</div>`;
+  }
+  stage.innerHTML=flowHeader()+body+`<p class="kind">${kindTxt[q.kind]} · ${PAT[q.pat].name.toLowerCase()}</p>`+rulesHTML();
+  if(q.kind==="why")speak(svText(v));
+  stage.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>flowAnswer({which:b.dataset.a}));
+  stage.querySelectorAll("[data-ok]").forEach(b=>b.onclick=()=>{b.classList.add("sel");flowAnswer({pick:b.dataset.ok==="1"})});
+  stage.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{b.classList.add("sel");flowAnswer({why:b.dataset.w})});
+  if(q.kind==="build")bindBuild();
+  const first=stage.querySelector(".row button,.opts button,.bank button");if(first&&!("ontouchstart" in window))first.focus();
+}
+// build question
+function buildHTML(){
+  const b=bq,v=b.v,inv=v.pat!=="S",next=b.placed.length;
+  const placedChip=i=>{const c=b.chips[b.placed[i]];return `<button class="chip ${b.colors?COLOR[c.r]:"plain"} placed" data-placed="${i}" title="Poista">${c.t}</button>`};
+  const empty=i=>`<span class="slot${i===next?" next":""}" aria-hidden="true"></span>`;
+  let html;
+  if(b.labels){
+    const fixed=v.alku?chipHTML(v.alku,b.colors,"fixed",true):`<span class="none">–</span>`;
+    const vcell=b.placed.length>0?placedChip(0):empty(0);
+    const scell=inv?(b.placed.length>1?placedChip(1):empty(1)):`<span class="none">–</span>`;
+    const rs=inv?2:1;let rest="";
+    for(let i=rs;i<b.total;i++)rest+=b.placed.length>i?placedChip(i):(i===next?empty(i):"");
+    html=`<div class="schema">${schemaHeader()}<div class="cell alku">${fixed}</div><div class="cell">${vcell}</div><div class="cell">${scell}</div><div class="cell rest">${rest}<span class="end muted">${v.end}</span></div></div>`;
+  }else{
+    let boxes="";for(let i=0;i<b.total;i++)boxes+=b.placed.length>i?placedChip(i):empty(i);
+    html=`<div class="linear">${v.alku?chipHTML(v.alku,false,"fixed",true):`<span class="none">–</span>`}${boxes}<span class="end">${v.end}</span></div>`;
+  }
+  const bank=b.chips.map((c,i)=>b.used.has(i)?"":`<button class="chip ${b.colors?COLOR[c.r]:"plain"}" data-chip="${i}">${c.t}</button>`).join("");
+  return html+`<div class="bank" aria-label="Sanat">${bank}</div><div class="row"><button id="undo" ${b.placed.length?"":"disabled"}>Peru</button></div>`;
+}
+function bindBuild(){
+  const area=document.getElementById("area");if(!area)return;
+  area.onclick=e=>{
+    if(!bq||flow.busy)return;const t=e.target.closest("button");if(!t)return;
+    if(t.dataset.chip!==undefined){place(+t.dataset.chip);}
+    else if(t.dataset.placed!==undefined){const k=+t.dataset.placed;bq.placed.splice(k).forEach(i=>bq.used.delete(i));redrawBuild();}
+    else if(t.id==="undo"){const i=bq.placed.pop();if(i!==undefined)bq.used.delete(i);redrawBuild();}
+  };
+}
+function place(i){
+  if(bq.used.has(i))return;bq.placed.push(i);bq.used.add(i);
+  const left=bq.chips.map((c,k)=>k).filter(k=>!bq.used.has(k));
+  if(left.length===1){bq.placed.push(left[0]);bq.used.add(left[0]);}
+  redrawBuild();
+  if(bq.placed.length===bq.total)flowAnswer({placed:bq.placed.map(k=>bq.chips[k])});
+}
+function redrawBuild(){const a=document.getElementById("area");if(a){a.innerHTML=buildHTML();const nb=a.querySelector(".bank button");if(nb&&!("ontouchstart" in window))nb.focus();}}
+function diagnose(v,placed){
+  const inv=v.pat!=="S";
+  if(placed[0].r!=="V")return v.pat==="Y"?"Kysymyksessä ilman kysymyssanaa verbi on ensimmäisenä ja subjekti heti sen jälkeen.":"Verbi kuuluu aina toiselle paikalle, heti alun jälkeen.";
+  if(inv&&placed[1].r!=="S")return v.pat==="Y"?`Verbi oli oikein. Subjekti "${v.subj}" tulee heti verbin jälkeen.`:`Alussa on ${ROLE[v.alku.r].toLowerCase()}, joten subjekti "${v.subj}" tulee heti verbin jälkeen.`;
+  const order=v.seq.filter(c=>REST.includes(c.r)).map(c=>ROLE[c.r].toLowerCase());
+  return `Verbi ja subjekti ovat oikeilla paikoilla – hyvä. Loppuosan järjestys on: ${order.join(" → ")}.`;
+}
+function flowAnswer(a){
+  if(flow.busy||!flow.q||flow.done)return;
+  const q=flow.q,v=q.v,P=PAT[q.pat];let ok=false,what="",expl="";
+  if(q.kind==="which"){ok=(a.which==="inv")===P.inv;what=`${ok?"Oikein: ":"Ei – "}<strong>${P.inv?"käänteinen":"suora"}</strong>. ${briefWhy(v)}`;expl=ok?"":P.why(v);}
+  else if(q.kind==="pick"){ok=!!a.pick;what=ok?`Oikein. ${briefWhy(v)}`:`Ei – oikea on <strong>${svText(v)}</strong>`;expl=P.why(v);}
+  else if(q.kind==="why"){ok=a.why===q.pat;what=ok?`Oikein. ${briefWhy(v)}`:`Ei – ${briefWhy(v).replace(/^Alussa/,"alussa").replace(/^Kysymys/,"kysymys")}`;expl=P.why(v);}
+  else if(q.kind==="build"){const target=v.seq.slice(v.alku?1:0).map(c=>c.t);ok=a.placed.length===target.length&&a.placed.every((c,i)=>c.t===target[i]);const mine=text((v.alku?[v.alku]:[]).concat(a.placed),v.end);what=ok?`<strong>${svText(v)}</strong>`:`Ei ihan. Oikein: <strong>${svText(v)}</strong><br><span class="muted">Sinun järjestyksesi: ${mine}</span>`;expl=ok?"":diagnose(v,a.placed);}
+  else return;
+  flow.busy=true;flow.asked++;markKnown(q.key,ok);
+  let cheer="";
+  if(ok){flow.right++;flow.streak++;flow.best=Math.max(flow.best,flow.streak);
+    cheer=cheers.streak[flow.streak]?`<p class="cheer big">${cheers.streak[flow.streak]}</p>`:`<p class="cheer">${cheers.ok[Math.floor(Math.random()*cheers.ok.length)]}</p>`;}
+  else{flow.streak=0;flow.missed.set(q.key,(flow.missed.get(q.key)||0)+1);
+    const pos=support.calm?0:Math.min(flow.queue.length,3+Math.floor(Math.random()*3));flow.queue.splice(pos,0,{kind:q.kind,s:q.s,pat:q.pat,qi:q.qi,key:q.key});
+    cheer=`<p class="cheer">${cheers.no[Math.floor(Math.random()*cheers.no.length)]}</p>`;}
+  const tip=(expl||support.calm)?`<p class="tip">${expl||P.why(v)}</p>`:"";
+  stage.innerHTML=flowHeader()+`<div class="feedback ${ok?"ok":"no"}">${what}${listenBtn(svText(v))}</div>`+sentenceSchema(v,true)+`<p class="fi">${v.fi}</p>`+tip+cheer+`<div class="row"><button id="next">Seuraava</button></div>`;
+  speak(svText(v));
+  const nb=document.getElementById("next");nb.onclick=nextFlow;nb.focus();
+  if(!support.calm)flow.adv=setTimeout(()=>{flow.adv=null;if(flow.q===q&&flow.busy)nextFlow()},ok?1400:(q.kind==="build"?4000:3000));
+}
+function endFlow(){
+  flow.done=true;if(flow.timer){clearInterval(flow.timer);flow.timer=null}if(flow.adv){clearTimeout(flow.adv);flow.adv=null}bq=null;
+  const acc=flow.asked?Math.round(flow.right/flow.asked*100):0;
+  const ex0=sentences[0];
+  const miss=[...flow.missed.entries()].sort((a,b)=>b[1]-a[1]).slice(0,support.calm?2:4).map(([k])=>{const p=k.slice(2);return `<li><strong>${PAT[p].name}</strong> – esim. ${svText(variant(ex0,p,0))} <span class="muted">(${PAT[p].rule})</span></li>`}).join("");
+  const goodKey=[...streaks.entries()].filter(([k,n])=>n>=2).sort((a,b)=>b[1]-a[1])[0];
+  const good=goodKey?`<p><strong>Meni hyvin:</strong> ${PAT[goodKey[0].slice(2)].name.toLowerCase()}.</p>`:"";
+  const line=acc>=90?"Erinomainen sessio. Seuraava kerta voi olla lyhyempi – tämä on hallussa.":acc>=70?"Vahva sessio. Alla olevat kannattaa katsoa vielä kerran huomenna.":"Hyvä alku. Toinen sessio huomenna tekee tästä pysyvää.";
+  const L=cfg();
+  stage.innerHTML=`<h2>Sessio tehty</h2><div class="stats"><span>kysymyksiä <b>${flow.asked}</b></span><span>oikein <b>${acc} %</b></span><span class="streak">paras putki <b>${flow.best}</b></span></div><p class="cheer">${line}</p>${good}${miss?`<p><strong>Seuraavaksi:</strong></p><ul class="review">${miss}</ul>`:"<p>Ei yhtään virhettä, jota tarvitsisi kerrata.</p>"}<div class="row"><button id="again">Uusi sessio (${L.name})</button><button id="lvl">Vaihda tasoa</button><button id="explore">Tutki kaaviota</button></div>`;
+  document.getElementById("again").onclick=()=>startFlow(flow.level);document.getElementById("lvl").onclick=chooseLevel;document.getElementById("explore").onclick=()=>setMode("explore");
+}
+stage.addEventListener("click",e=>{const b=e.target.closest(".listen");if(b)speak(b.dataset.say,true);});
+setMode("explore");
+</script>
+</body>
+</html>
