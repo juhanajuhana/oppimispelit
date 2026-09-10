@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maapallo ja ilmakehä – GE1-kertaus</title>
+<style>
+  :root{
+    --ink:#1c2a36; --muted:#5b6b78; --page:#f7f9fb; --panel:#ffffff; --line:#e1e7ec; --accent:#1f6f8b; --focus:#f2b134;
+    --warm:#d1452b; --warm-bg:#fbe6e2; --cold:#2757a8; --cold-bg:#e3ebf7; --ok:#2e8b57; --ok-bg:#e4f3e6; --sun:#f2b134; --land:#e6d9b8; --sea:#cfe3ef;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--ink);font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;line-height:1.45}
+  body.big{font-size:18px}
+  body.big .stage p,body.big .opts button,body.big .row button{font-size:17px}
+  header{max-width:860px;margin:0 auto;padding:18px 22px 4px}
+  h1{font-size:26px;margin:0;font-weight:600;letter-spacing:-.01em}
+  header p{margin:2px 0 0;color:var(--muted);font-size:15px}
+  nav{display:flex;gap:6px;padding:10px 22px 12px;flex-wrap:wrap;max-width:860px;margin:0 auto}
+  nav button{border:1px solid #d4dbe1;background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:999px;font:inherit;font-size:14px;cursor:pointer}
+  nav button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  nav button.flow-btn{border-color:var(--accent);color:var(--accent)}
+  nav button.flow-btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  nav button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  main{max-width:860px;margin:0 auto;padding:0 22px 40px}
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;min-height:260px}
+  .stage h2{margin:0 0 6px;font-size:20px;font-weight:600}
+  .stage h3{margin:0 0 4px;font-size:17px;font-weight:600}
+  .stage h4{margin:10px 0 4px;font-size:15px;font-weight:600}
+  .stage p{margin:0 0 10px;font-size:14.5px}
+  .stage ul,.stage ol{margin:0 0 10px;padding-left:20px;font-size:14.5px}
+  .stage li{margin-bottom:3px}
+  .muted{color:var(--muted)}
+  .quiz-q{font-size:18px;font-weight:600;margin:6px 0 10px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+  .tabs button{border:1px solid #d4dbe1;background:#fff;color:var(--ink);padding:6px 11px;border-radius:999px;font:inherit;font-size:13.5px;cursor:pointer}
+  .tabs button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tabs button:focus-visible{outline:3px solid var(--focus)}
+  .tabs button .n{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:#e9eef2;color:var(--ink);font-size:11.5px;text-align:center;margin-right:5px;font-weight:600}
+  .tabs button[aria-pressed="true"] .n{background:#fff;color:var(--accent)}
+  .diagram{margin:6px 0 10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .diagram svg{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .diagram svg text{font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;pointer-events:none}
+  .hit{cursor:pointer}
+  .hit:hover .zone,.hit:focus .zone{filter:brightness(.93)}
+  .hl .zone{stroke:#f2b134;stroke-width:3px}
+  .hl text,.hl .lbl{font-weight:700}
+  .lbl.hidden{display:none}
+  .pulse{animation:pulse 1.2s ease-in-out 2}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .items{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+  .items button{border:1px solid #d4dbe1;background:#fff;color:var(--ink);padding:6px 10px;border-radius:6px;font:inherit;font-size:13.5px;cursor:pointer}
+  .items button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:#eef6f9}
+  .items button.known{border-color:var(--ok);background:var(--ok-bg)}
+  .items button:focus-visible{outline:3px solid var(--focus)}
+  .explain{border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
+  .explain .where{color:var(--muted);font-size:13.5px;margin-bottom:6px}
+  .explain .group{display:inline-block;background:#eef1f4;border-radius:4px;padding:1px 7px;font-size:12.5px;margin-bottom:6px;margin-right:6px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 8px;background:#fbfcfd}
+  .card summary{cursor:pointer;font-weight:600;font-size:15px}
+  .card summary .q{color:var(--accent);margin-right:6px}
+  .card .body{margin-top:8px}
+  .card .body p,.card .body li{font-size:14.5px}
+  .card .key{background:#fff8e6;border-left:3px solid var(--sun);padding:6px 10px;border-radius:0 6px 6px 0;margin:6px 0}
+  .feedback{padding:10px 12px;border-radius:6px;font-size:14.5px;margin-top:10px}
+  .feedback.ok{background:var(--ok-bg);color:#1f5e2b} .feedback.no{background:var(--warm-bg);color:#8a2a1a}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .row button,.opts button{border:1px solid #d4dbe1;background:#fff;color:var(--ink);padding:9px 14px;border-radius:6px;font:inherit;font-size:15px;cursor:pointer;text-align:left}
+  .row button:hover,.opts button:hover{border-color:var(--accent)}
+  .row button:focus-visible,.opts button:focus-visible{outline:3px solid var(--focus)}
+  .row button small,.opts button small{display:block;font-size:12.5px;color:var(--muted);font-weight:400}
+  .row button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .opts{display:grid;gap:8px;margin-top:8px}
+  .opts.two{grid-template-columns:1fr 1fr}
+  .opts button.big{font-size:17px;padding:12px 14px}
+  .opts button.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .opts button.right{border-color:var(--ok);background:var(--ok-bg)}
+  .opts button.wrong{border-color:var(--warm);background:var(--warm-bg)}
+  .opts button:disabled{cursor:default;opacity:.85}
+  .order{display:grid;gap:6px;margin:6px 0 10px}
+  .order .slot{display:flex;gap:8px;align-items:center;border:1px dashed #c7d0d8;border-radius:6px;padding:7px 10px;min-height:38px;font-size:14.5px}
+  .order .slot b{color:var(--muted);font-weight:600;min-width:18px}
+  .order .slot.filled{border-style:solid;background:#f3f7f9;cursor:pointer}
+  .bank{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px}
+  .bank button{border:1px solid #d4dbe1;background:#fff;border-radius:6px;padding:7px 11px;font:inherit;font-size:14.5px;cursor:pointer;color:var(--ink)}
+  .bank button:focus-visible{outline:3px solid var(--focus)}
+  .tip{background:#fff8e6;border-left:3px solid var(--sun);padding:6px 10px;border-radius:0 6px 6px 0;font-size:14px;margin:8px 0}
+  .cheer{color:var(--accent);font-weight:600;font-size:15px;margin:6px 0}
+  .cheer.big{font-size:19px}
+  .flowbar{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+  .flowbar .time{flex:1;min-width:120px;height:8px;background:#e9eef2;border-radius:4px;overflow:hidden}
+  .flowbar .time i{display:block;height:100%;background:var(--accent);transition:width 1s linear}
+  .flowbar .streak{font-weight:600;color:var(--ink)}
+  .stats{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 12px;font-size:14.5px}
+  .stats b{font-size:20px;display:block}
+  .review li{margin-bottom:6px}
+  details.support{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+  details.support summary{cursor:pointer;color:var(--muted);font-size:14px}
+  details.support label{display:block;margin:8px 0;font-size:14.5px}
+  details.support input[type=checkbox]{margin-right:8px;transform:scale(1.15)}
+  details.support select{font:inherit;padding:4px 6px;margin-left:8px}
+  details.rules{margin-top:12px;font-size:14px}
+  details.rules summary{cursor:pointer;color:var(--muted)}
+  .listen{border:none;background:none;color:var(--accent);cursor:pointer;font:inherit;font-size:13.5px;padding:0 4px;vertical-align:middle}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px;margin:6px 0 10px}
+  .kv b{font-weight:600}
+  .ctrl{display:flex;gap:6px;align-items:center;margin:4px 0 8px;flex-wrap:wrap}
+  .ctrl select{font:inherit;font-size:14px;padding:6px 8px;border:1px solid #d4dbe1;border-radius:6px;background:#fff;color:var(--ink);max-width:100%}
+  .ctrl button{border:1px solid #d4dbe1;background:#fff;border-radius:6px;font:inherit;font-size:14px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+  table.tbl{border-collapse:collapse;font-size:12.5px;margin:4px 0 8px;width:100%;overflow-x:auto;display:block}
+  table.tbl th,table.tbl td{border:1px solid var(--line);padding:3px 5px;text-align:center;white-space:nowrap}
+  table.tbl th:first-child,table.tbl td:first-child{text-align:left}
+  .known-mark{color:var(--ok);font-weight:600;font-size:12.5px;margin-left:6px}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.diagram svg{min-width:520px}.two-col{grid-template-columns:1fr}.opts.two{grid-template-columns:1fr}main,header,nav{padding-left:12px;padding-right:12px}.stage{padding:12px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Maapallo ja ilmakehä</h1>
+  <p>GE1-kertaus: planetaarisuus, ilmakehä, tuulet, sade, ilmasto ja syklonit. Tutki ensin kaavioita, harjoittele sitten 10 minuutin sessio.</p>
+</header>
+<nav aria-label="Tila">
+  <button id="m-explore" aria-pressed="true">Tutki kaavioita</button>
+  <button id="m-flow" class="flow-btn" aria-pressed="false">Harjoittele</button>
+</nav>
+<main>
+  <div class="stage" id="stage"></div>
+</main>
+<script>
+// ---------- data: teemat, kohteet ja 17 kysymyksen vastaukset
+const themes=[
+  {id:"maa",name:"Maapallo ja energia",short:"Energia",qs:[1,2],dg:"maa"},
+  {id:"planeetta",name:"Pyöriminen, kierto ja valaistus",short:"Planetaarisuus",qs:[3,4,5],dg:"valo"},
+  {id:"ilmakeha",name:"Ilmakehä ja otsoni",short:"Ilmakehä",qs:[6,7,8],dg:"ilmakeha"},
+  {id:"tuulet",name:"Tuuli ja painevyöhykkeet",short:"Tuulet",qs:[9,10],dg:"tuulet"},
+  {id:"vesi",name:"Vesi, sade ja merivirrat",short:"Vesi ja sade",qs:[11,12,13,14],dg:"vesi"},
+  {id:"ilmasto",name:"Ilmasto, syklonit ja ilmastodiagrammi",short:"Ilmasto",qs:[15,16,17],dg:"sykloni"},
+];
+const dgOfTheme={maa:["maa"],planeetta:["valo","vuosi"],ilmakeha:["ilmakeha"],tuulet:["tuulet"],vesi:["vesi","sade"],ilmasto:["sykloni","vaiheet","diagrammi"]};
+const dgName={maa:"Maan energialähteet ja kehät",valo:"Valaistusvyöhykkeet",vuosi:"Kierto auringon ympäri",ilmakeha:"Ilmakehän kerrokset",tuulet:"Painevyöhykkeet ja tuulet",vesi:"Hydrologinen kierto",sade:"Kolme sadetyyppiä",sykloni:"Sykloni ylhäältä",vaiheet:"Syklonin vaiheet",diagrammi:"Ilmastodiagrammi"};
+
+// Kohteet: name, th (teema), dg (kaavio), where (sijaintivihje), group, why (miksi sillä on väliä)
+const items={
+  // --- maa
+  ydin:{name:"Sisäsyntyinen energia",th:"maa",dg:"maa",where:"Maan sisällä: ydin ja vaippa",group:"Endogeeninen energia",
+    why:"Maan sisäinen lämpö (radioaktiivinen hajoaminen ja syntyvaiheen alkulämpö) liikuttaa laattoja. Se synnyttää tulivuoret, maanjäristykset ja vuoristot: sisäsyntyinen energia <b>rakentaa</b> pinnanmuotoja."},
+  aurinko:{name:"Ulkosyntyinen energia",th:"maa",dg:"maa",where:"Maan ulkopuolelta: Auringon säteily",group:"Eksogeeninen energia",
+    why:"Auringon säteily käyttää ilmakehän ja veden kiertoa: tuulet, sateet, joet, jäätiköt ja aallot rapauttavat, kuluttavat ja kasaavat ainesta. Ulkosyntyinen energia <b>tasoittaa</b> pinnanmuotoja. Myös painovoima lasketaan ulkosyntyiseksi."},
+  kivikeha:{name:"Kivikehä (litosfääri)",th:"maa",dg:"maa",where:"Maan kiinteä kuori ja ylin vaippa",group:"Maapallon kehät",
+    why:"Kallioperä ja litosfäärilaatat. Laattojen liikkeet muokkaavat mantereita ja meriä."},
+  vesikeha:{name:"Vesikehä (hydrosfääri)",th:"maa",dg:"maa",where:"Meret, järvet, joet, pohjavesi",group:"Maapallon kehät",
+    why:"Kaikki maapallon vesi. Meret peittävät 71 % pinnasta ja varastoivat lämpöä. Jäätiköt ja lumi lasketaan usein omaksi kehäkseen: lumi- ja jääkehä (kryosfääri)."},
+  ilmakehaK:{name:"Ilmakehä (atmosfääri)",th:"maa",dg:"maa",where:"Maata ympäröivä kaasukehä",group:"Maapallon kehät",
+    why:"Typpi 78 %, happi 21 %, vähän argonia, hiilidioksidia ja vesihöyryä. Sää ja ilmasto syntyvät sen alimmassa kerroksessa."},
+  elonkeha:{name:"Elonkehä (biosfääri)",th:"maa",dg:"maa",where:"Kaikki elollinen kolmen muun kehän rajalla",group:"Maapallon kehät",
+    why:"Kasvit, eläimet ja ihmiset. Elonkehä sitoo hiiltä, tuottaa happea ja muokkaa maaperää. Kehät vaikuttavat jatkuvasti toisiinsa."},
+  // --- valo / vuosi
+  paivantasaaja:{name:"Päiväntasaaja 0°",th:"planeetta",dg:"valo",where:"Pallon keskellä, jakaa pohjoiseen ja eteläiseen pallonpuoliskoon",group:"Leveyspiirit",
+    why:"Päivä ja yö ovat aina 12 tuntia. Aurinko on zeniitissä kahdesti vuodessa, tasauspäivinä."},
+  kravun:{name:"Kravun kääntöpiiri 23,5° N",th:"planeetta",dg:"valo",where:"Päiväntasaajan pohjoispuolella, Saharan halki",group:"Leveyspiirit",
+    why:"Pohjoisin leveyspiiri, jolla aurinko käy zeniitissä: kesäpäivänseisauksena 21.6. Rajaa tropiikin ja pohjoisen lauhkean vyöhykkeen."},
+  kauriin:{name:"Kauriin kääntöpiiri 23,5° S",th:"planeetta",dg:"valo",where:"Päiväntasaajan eteläpuolella, Australian ja Brasilian halki",group:"Leveyspiirit",
+    why:"Eteläisin leveyspiiri, jolla aurinko käy zeniitissä: talvipäivänseisauksena 21.12. Rajaa tropiikin ja eteläisen lauhkean vyöhykkeen."},
+  napapiiriN:{name:"Pohjoinen napapiiri 66,5° N",th:"planeetta",dg:"valo",where:"Rovaniemen korkeudella",group:"Leveyspiirit",
+    why:"Pohjoispuolella aurinko ei laske kesäpäivänseisauksena (yötön yö) eikä nouse talvipäivänseisauksena (kaamos). Rajaa lauhkean ja kylmän vyöhykkeen. 90° − 23,5° = 66,5°."},
+  napapiiriS:{name:"Eteläinen napapiiri 66,5° S",th:"planeetta",dg:"valo",where:"Etelämantereen rannikon tuntumassa",group:"Leveyspiirit",
+    why:"Eteläpuolella yötön yö joulukuussa ja kaamos kesäkuussa. Rajaa eteläisen lauhkean ja kylmän vyöhykkeen."},
+  tropiikki:{name:"Tropiikki eli kuuma vyöhyke",th:"planeetta",dg:"valo",where:"Kääntöpiirien välissä 23,5° N – 23,5° S",group:"Valaistusvyöhykkeet",
+    why:"Aurinko käy zeniitissä vähintään kerran vuodessa, säteily tulee jyrkästi ja päivä on aina noin 12 tuntia. Siksi kuuma ympäri vuoden ja vuodenaikojen lämpötilaero pieni."},
+  lauhkeaN:{name:"Pohjoinen lauhkea vyöhyke",th:"planeetta",dg:"valo",where:"Kravun kääntöpiiristä pohjoiselle napapiirille 23,5°–66,5° N",group:"Valaistusvyöhykkeet",
+    why:"Aurinko ei koskaan zeniitissä, ei yötöntä yötä eikä kaamosta. Päivän pituus ja auringon korkeus vaihtelevat selvästi, joten on neljä vuodenaikaa. Suurin osa Suomea kuuluu tähän."},
+  lauhkeaS:{name:"Eteläinen lauhkea vyöhyke",th:"planeetta",dg:"valo",where:"Kauriin kääntöpiiristä eteläiselle napapiirille 23,5°–66,5° S",group:"Valaistusvyöhykkeet",
+    why:"Sama kuin pohjoisessa, mutta vuodenajat päinvastoin: kesä joulukuussa. Enimmäkseen merta, joten ilmasto on merellinen."},
+  kylmaN:{name:"Pohjoinen kylmä vyöhyke",th:"planeetta",dg:"valo",where:"Napapiiriltä pohjoisnavalle 66,5°–90° N",group:"Valaistusvyöhykkeet",
+    why:"Kesällä yötön yö, talvella kaamos; navalla kumpikin kestää puoli vuotta. Aurinko paistaa aina matalalta, joten kylmä vaikka kesällä valoa on paljon."},
+  kylmaS:{name:"Eteläinen kylmä vyöhyke",th:"planeetta",dg:"valo",where:"Eteläiseltä napapiiriltä etelänavalle 66,5°–90° S",group:"Valaistusvyöhykkeet",
+    why:"Etelämanner. Kaamos kesä–heinäkuussa, yötön yö joulukuussa. Maapallon kylmin alue."},
+  akseli:{name:"Akselin kaltevuus 23,5°",th:"planeetta",dg:"valo",where:"Pyörimisakseli on kallellaan ratatasoon nähden",group:"Planetaarisuus",
+    why:"Kaltevuus on syy vuodenaikoihin: kesällä oma pallonpuolisko on kallistunut aurinkoa kohti. Sama luku 23,5° määrää kääntöpiirit, ja 90° − 23,5° = 66,5° napapiirit."},
+  pyoriminen:{name:"Pyöriminen akselinsa ympäri",th:"planeetta",dg:"valo",where:"Länneltä itään, yksi kierros 24 tunnissa",group:"Planetaarisuus",
+    why:"Synnyttää vuorokauden (päivä ja yö), Coriolis-ilmiön (liike kääntyy pohjoisessa oikealle, etelässä vasemmalle), aikavyöhykkeet (15° = 1 h), navoilta litistyneen muodon ja yhdessä Kuun kanssa vuoroveden."},
+  kevat:{name:"Kevätpäiväntasaus 20.–21.3.",th:"planeetta",dg:"vuosi",where:"Maa auringon ja seisauspisteiden puolivälissä",group:"Tasaus- ja seisauspäivät",
+    why:"Aurinko zeniitissä päiväntasaajalla, päivä ja yö 12 h kaikkialla. Pohjoisessa alkaa kevät, valo lisääntyy nopeasti."},
+  kesa:{name:"Kesäpäivänseisaus 21.–22.6.",th:"planeetta",dg:"vuosi",where:"Pohjoinen napa kallistunut aurinkoa kohti",group:"Tasaus- ja seisauspäivät",
+    why:"Aurinko zeniitissä Kravun kääntöpiirillä. Pohjoisella pallonpuoliskolla vuoden pisin päivä, napapiirin pohjoispuolella yötön yö. Etelässä lyhin päivä ja etelänavalla kaamos."},
+  syys:{name:"Syyspäiväntasaus 22.–23.9.",th:"planeetta",dg:"vuosi",where:"Maa taas seisauspisteiden puolivälissä",group:"Tasaus- ja seisauspäivät",
+    why:"Aurinko zeniitissä päiväntasaajalla, päivä ja yö 12 h kaikkialla. Pohjoisessa alkaa syksy, etelässä kevät."},
+  talvi:{name:"Talvipäivänseisaus 21.–22.12.",th:"planeetta",dg:"vuosi",where:"Pohjoinen napa kallistunut auringosta poispäin",group:"Tasaus- ja seisauspäivät",
+    why:"Aurinko zeniitissä Kauriin kääntöpiirillä. Pohjoisessa vuoden lyhin päivä ja napapiirin pohjoispuolella kaamos. Etelässä pisin päivä ja keskikesä."},
+  // --- ilmakehä
+  tropo:{name:"Troposfääri",th:"ilmakeha",dg:"ilmakeha",where:"Alin kerros, 0–n. 10 km (navoilla 8, päiväntasaajalla 17 km)",group:"Ilmakehän kerrokset",
+    why:"Lähes kaikki sää: pilvet, sade, tuulet. 75 % ilmakehän massasta ja lähes kaikki vesihöyry. Lämpötila laskee ylöspäin n. 6,5 °C kilometriä kohti. Yläraja on tropopaussi."},
+  strato:{name:"Stratosfääri",th:"ilmakeha",dg:"ilmakeha",where:"n. 10–50 km",group:"Ilmakehän kerrokset",
+    why:"Lämpötila nousee ylöspäin, koska otsonikerros imee auringon UV-säteilyä. Ilma on tasaista ja kuivaa; matkustajakoneet lentävät sen alaosassa turbulenssin yläpuolella."},
+  otsoni:{name:"Otsonikerros",th:"ilmakeha",dg:"ilmakeha",where:"Stratosfäärissä n. 15–35 km",group:"Ilmakehän kerrokset",
+    why:"Otsoni (O₃) imee suurimman osan haitallisesta UV-B- ja UV-C-säteilystä. Ilman sitä elämä maalla olisi mahdotonta. CFC-yhdisteet ohensivat sitä, Montrealin pöytäkirja 1987 kielsi ne."},
+  meso:{name:"Mesosfääri",th:"ilmakeha",dg:"ilmakeha",where:"n. 50–85 km",group:"Ilmakehän kerrokset",
+    why:"Lämpötila laskee taas ja on ilmakehän kylmin, jopa −90 °C. Meteorit palavat täällä: tähdenlennot."},
+  termo:{name:"Termosfääri",th:"ilmakeha",dg:"ilmakeha",where:"n. 85–500 km",group:"Ilmakehän kerrokset",
+    why:"Lämpötila nousee satoihin asteisiin, mutta ilma on niin harvaa, ettei sitä tunne. Revontulet syntyvät täällä (100–300 km), ja kansainvälinen avaruusasema kiertää 400 km:ssä. Ionosfääri heijastaa radioaaltoja."},
+  ekso:{name:"Eksosfääri",th:"ilmakeha",dg:"ilmakeha",where:"Uloin kerros, yli 500 km",group:"Ilmakehän kerrokset",
+    why:"Ilmakehä ohenee vähitellen avaruudeksi. Monet satelliitit kiertävät täällä."},
+  // --- tuulet
+  L0:{name:"Päiväntasaajan matalapaine",th:"tuulet",dg:"tuulet",where:"Päiväntasaajalla, 0°",group:"Planetaariset painevyöhykkeet",
+    why:"Aurinko lämmittää eniten, lämmin kostea ilma kohoaa → matalapaine ja päivittäisiä konvektiosateita. Pasaatit kohtaavat täällä (ITCZ). Tyyntä: 'tyvenet'."},
+  H30N:{name:"Kääntöpiirin korkeapaine (pohjoinen)",th:"tuulet",dg:"tuulet",where:"n. 30° N, Sahara ja Arabia",group:"Planetaariset painevyöhykkeet",
+    why:"Päiväntasaajalta kohonnut ilma laskeutuu takaisin n. 30° leveydellä. Laskeva ilma lämpenee ja kuivuu → korkeapaine, kirkasta ja aavikoita. Subtrooppinen korkeapaine."},
+  H30S:{name:"Kääntöpiirin korkeapaine (eteläinen)",th:"tuulet",dg:"tuulet",where:"n. 30° S, Kalahari ja Australia",group:"Planetaariset painevyöhykkeet",
+    why:"Sama kuin pohjoisessa: laskeva kuiva ilma, aavikot (Kalahari, Australian aavikot, Atacama)."},
+  L60N:{name:"Polaaririntaman matalapaine (pohjoinen)",th:"tuulet",dg:"tuulet",where:"n. 60° N, Islannin seutu",group:"Planetaariset painevyöhykkeet",
+    why:"Lämmin länsituuli-ilma ja kylmä napailma kohtaavat polaaririntamalla. Lämmin ilma nousee → matalapaine ja liikkuvat matalapaineet eli syklonit. Islannin matalapaine tuo Suomeen sateet."},
+  L60S:{name:"Polaaririntaman matalapaine (eteläinen)",th:"tuulet",dg:"tuulet",where:"n. 60° S, Etelämantereen ympärillä",group:"Planetaariset painevyöhykkeet",
+    why:"Yhtenäinen matalapainevyö meren yllä, jatkuvia myrskyjä."},
+  HN:{name:"Pohjoisnavan korkeapaine",th:"tuulet",dg:"tuulet",where:"90° N",group:"Planetaariset painevyöhykkeet",
+    why:"Kylmä, raskas ilma laskeutuu → korkeapaine. Kuivaa: kylmä ilma sisältää hyvin vähän kosteutta."},
+  HS:{name:"Etelänavan korkeapaine",th:"tuulet",dg:"tuulet",where:"90° S",group:"Planetaariset painevyöhykkeet",
+    why:"Etelämantereen jäätikön päällä kylmä korkeapaine. Etelämanner on maailman suurin kylmä aavikko."},
+  pasaatiN:{name:"Koillispasaati",th:"tuulet",dg:"tuulet",where:"30° N → päiväntasaaja",group:"Planetaariset tuulet",
+    why:"Puhaltaa kääntöpiirin korkeapaineesta päiväntasaajan matalapaineeseen. Coriolis kääntää sen oikealle, joten se tulee koillisesta. Tasainen ja luotettava: purjelaivat käyttivät sitä Atlantin yli."},
+  pasaatiS:{name:"Kaakkoispasaati",th:"tuulet",dg:"tuulet",where:"30° S → päiväntasaaja",group:"Planetaariset tuulet",
+    why:"Eteläisellä pallonpuoliskolla Coriolis kääntää vasemmalle, joten pasaati tulee kaakosta. Pasaatit kohtaavat päiväntasaajalla ja työntävät merivirtoja länteen."},
+  lansiN:{name:"Länsituulet (pohjoinen)",th:"tuulet",dg:"tuulet",where:"30° N → 60° N, Suomi ja Länsi-Eurooppa",group:"Planetaariset tuulet",
+    why:"Puhaltavat kääntöpiirin korkeapaineesta polaaririntaman matalapaineeseen ja kääntyvät oikealle: lounaasta. Ne tuovat Suomeen syklonit ja Atlantin lämmön."},
+  lansiS:{name:"Länsituulet (eteläinen)",th:"tuulet",dg:"tuulet",where:"30° S → 60° S",group:"Planetaariset tuulet",
+    why:"Kääntyvät vasemmalle, joten luoteesta. Vailla mantereiden esteitä: 'ulvovat neljäkymmenet'."},
+  itaN:{name:"Polaariset itätuulet (pohjoinen)",th:"tuulet",dg:"tuulet",where:"Pohjoisnapa → 60° N",group:"Planetaariset tuulet",
+    why:"Puhaltavat navan korkeapaineesta polaaririntamalle ja kääntyvät oikealle: koillisesta/idästä. Kylmää ja kuivaa ilmaa."},
+  itaS:{name:"Polaariset itätuulet (eteläinen)",th:"tuulet",dg:"tuulet",where:"Etelänapa → 60° S",group:"Planetaariset tuulet",
+    why:"Etelämantereelta ulospäin puhaltavia kylmiä tuulia, kääntyvät vasemmalle."},
+  // --- vesi
+  haihtuminen:{name:"Haihtuminen (evaporaatio)",th:"vesi",dg:"vesi",where:"Merestä, järvistä ja maasta ylös",group:"Hydrologinen kierto",
+    why:"Auringon energia muuttaa veden vesihöyryksi. Suurin osa haihtuu meristä. Tämä on kierron moottori."},
+  transpiraatio:{name:"Kasvien haihdunta (transpiraatio)",th:"vesi",dg:"vesi",where:"Kasvien lehdistä ylös",group:"Hydrologinen kierto",
+    why:"Kasvit imevät vettä juurilla ja haihduttavat sitä lehdistä. Haihtuminen + transpiraatio = evapotranspiraatio. Sademetsä tekee osan omista sateistaan."},
+  tiivistyminen:{name:"Tiivistyminen (kondensaatio)",th:"vesi",dg:"vesi",where:"Pilvessä, kun kohoava ilma jäähtyy",group:"Hydrologinen kierto",
+    why:"Kohoava ilma jäähtyy, saavuttaa kastepisteen ja vesihöyry tiivistyy pilvipisaroiksi. Ilman kohoamista ei synny pilviä eikä sadetta."},
+  sadanta:{name:"Sadanta",th:"vesi",dg:"vesi",where:"Pilvestä alas vetenä tai lumena",group:"Hydrologinen kierto",
+    why:"Pisarat kasvavat niin painaviksi, että putoavat. Vuoristossa lumi varastoituu jäätiköihin ja sulaa hitaasti."},
+  pintavalunta:{name:"Pintavalunta",th:"vesi",dg:"vesi",where:"Rinteitä alas puroihin ja jokiin",group:"Hydrologinen kierto",
+    why:"Osa sateesta valuu pintaa pitkin jokiin ja lopulta mereen. Voimakas rankkasateella, roudalla ja asfaltilla → tulvat."},
+  imeytyminen:{name:"Imeytyminen (infiltraatio)",th:"vesi",dg:"vesi",where:"Maan pintaan ja siitä syvemmälle",group:"Hydrologinen kierto",
+    why:"Osa sateesta imeytyy maaperään. Hiekka ja sora imevät hyvin, savi ja kallio huonosti."},
+  pohjavesi:{name:"Pohjavesi",th:"vesi",dg:"vesi",where:"Maan alla, virtaa hitaasti mereen tai lähteisiin",group:"Hydrologinen kierto",
+    why:"Imeytynyt vesi täyttää maaperän huokoset ja virtaa hitaasti jokiin ja meriin. Suomen juomavesi on pitkälti harjujen pohjavettä."},
+  orografinen:{name:"Orografinen sade",th:"vesi",dg:"sade",where:"Vuoren tuulenpuoleisella rinteellä",group:"Sadetyypit",
+    why:"Tuuli pakottaa kostean ilman nousemaan vuoren rinnettä ylös, ilma jäähtyy ja sataa. Vuoren suojan puolella laskeva ilma lämpenee ja kuivuu: <b>sadevarjo</b>. Yleinen Norjan länsirannikolla, Himalajan etelärinteillä, Andeilla ja Skotlannissa."},
+  rintamasade:{name:"Rintamasade",th:"vesi",dg:"sade",where:"Lämpimän ja kylmän ilmamassan rajalla",group:"Sadetyypit",
+    why:"Kevyempi lämmin ilma nousee raskaamman kylmän ilman päälle ja jäähtyy. Sade on laaja-alaista, tasaista ja pitkäkestoista. Yleinen lauhkealla vyöhykkeellä sykloneissa: Suomen syys- ja talvisateet."},
+  konvektio:{name:"Konvektiosade",th:"vesi",dg:"sade",where:"Auringon kuumentaman maan yllä, iltapäivällä",group:"Sadetyypit",
+    why:"Kuuma maanpinta lämmittää ilmaa, joka kohoaa nopeasti pystyvirtauksena ja jäähtyy: korkea kuuropilvi (cumulonimbus). Sade on rankkaa, lyhyttä ja paikallista, usein ukkosta. Yleinen tropiikissa joka päivä ja Suomessa kesällä."},
+  // --- sykloni
+  Lkeskus:{name:"Matalapaineen keskus L",th:"ilmasto",dg:"sykloni",where:"Syklonin keskellä, rintamien kärjessä",group:"Syklonin osat",
+    why:"Paine on alin keskuksessa. Ilma kiertää keskusta pohjoisella pallonpuoliskolla vastapäivään ja virtaa sisäänpäin, jolloin se kohoaa ja sataa."},
+  lamminR:{name:"Lämmin rintama",th:"ilmasto",dg:"sykloni",where:"Keskuksesta kaakkoon, punainen viiva ja puoliympyrät",group:"Syklonin osat",
+    why:"Lämmin ilma liukuu loivasti kylmän ilman päälle. Sen edellä pilvet paksuuntuvat vähitellen ja seuraa laaja, pitkä ja tasainen sade. Kulkee syklonin etupuolella."},
+  kylmaR:{name:"Kylmä rintama",th:"ilmasto",dg:"sykloni",where:"Keskuksesta lounaaseen, sininen viiva ja kolmiot",group:"Syklonin osat",
+    why:"Kylmä ilma työntyy jyrkästi lämpimän alle ja nostaa sen nopeasti: kuurosateita, ukkosta, tuuli kääntyy ja voimistuu. Sen jälkeen kirkastuu ja viilenee. Liikkuu lämmintä rintamaa nopeammin."},
+  sektori:{name:"Lämmin sektori",th:"ilmasto",dg:"sykloni",where:"Rintamien välissä keskuksen eteläpuolella",group:"Syklonin osat",
+    why:"Lämmintä ja kosteaa ilmaa, sade tauolla tai tihkua, tuuli lounaasta. Kapenee, kun kylmä rintama saa lämmintä kiinni (okluusio)."},
+  liike:{name:"Syklonin liikesuunta",th:"ilmasto",dg:"sykloni",where:"Nuoli keskuksesta itään tai koilliseen",group:"Syklonin osat",
+    why:"Länsituulet kuljettavat syklonia länneltä itään. Siksi Suomessa sää tulee yleensä lännestä ja lämmin rintama ohittaa ennen kylmää."},
+  // --- diagrammi
+  lampokayra:{name:"Lämpökäyrä",th:"ilmasto",dg:"diagrammi",where:"Punainen viiva, luetaan vasemmalta akselilta °C",group:"Ilmastodiagrammin osat",
+    why:"Kuukausien keskilämpötilat. Huippu kesä–elokuussa → pohjoinen pallonpuolisko; joulu–helmikuussa → eteläinen. Lämpimimmän ja kylmimmän ero = vuosivaihtelu: pieni merellisessä ja trooppisessa, suuri mantereisessa ilmastossa."},
+  sadepylvaat:{name:"Sadepylväät",th:"ilmasto",dg:"diagrammi",where:"Siniset pylväät, luetaan oikealta akselilta mm",group:"Ilmastodiagrammin osat",
+    why:"Kuukausien sademäärät. Pylväät yhteensä = vuosisademäärä. Jakautuminen kertoo sadekauden ja kuivan kauden."},
+  kuivakausi:{name:"Kuiva kausi",th:"ilmasto",dg:"diagrammi",where:"Kohta, jossa sadepylväs jää lämpökäyrän alle",group:"Ilmastodiagrammin osat",
+    why:"Asteikot ovat suhteessa 1:2 (10 °C = 20 mm). Kun pylväs jää käyrän alle, haihdunta on sadetta suurempi: kasvit kärsivät kuivuudesta. Välimeren ilmastossa kuiva kausi on kesällä, savannilla talvella."},
+};
+const itemIds=Object.keys(items);
+
+// 17 kysymystä ja vastaukset
+const cards=[
+  {n:1,th:"maa",dg:"maa",q:"Mitä tarkoittavat sisäsyntyinen ja ulkosyntyinen energia?",hl:["ydin","aurinko"],
+   html:`<p><b>Sisäsyntyinen (endogeeninen) energia</b> tulee Maan sisältä: ytimen ja vaipan lämmöstä, jota tuottaa radioaktiivisten aineiden hajoaminen. Se liikuttaa litosfäärilaattoja ja synnyttää tulivuoret, maanjäristykset ja vuoristojen poimuttumisen. Se <b>rakentaa</b> ja kohottaa pinnanmuotoja.</p>
+   <p><b>Ulkosyntyinen (eksogeeninen) energia</b> tulee Maan ulkopuolelta, lähes kokonaan Auringosta. Säteily käyttää ilmakehän ja veden kiertoa: tuuli, sade, joet, jäätiköt ja aallot rapauttavat, kuluttavat (eroosio) ja kasaavat ainesta. Se <b>tasoittaa</b> pinnanmuotoja. Painovoima lasketaan myös ulkosyntyiseksi.</p>
+   <div class="key">Muistisääntö: sisältä rakentuu, ulkoa kuluu.</div>`},
+  {n:2,th:"maa",dg:"maa",q:"Mitä eri kehiä maapallolla on?",hl:["kivikeha","vesikeha","ilmakehaK","elonkeha"],
+   html:`<ul><li><b>Kivikehä</b> (litosfääri): kuori ja ylin vaippa, laatat.</li><li><b>Vesikehä</b> (hydrosfääri): meret, järvet, joet, pohjavesi.</li><li><b>Ilmakehä</b> (atmosfääri): kaasukehä, jossa sää syntyy.</li><li><b>Elonkehä</b> (biosfääri): kaikki elollinen.</li></ul>
+   <p>Usein erotetaan lisäksi <b>lumi- ja jääkehä</b> (kryosfääri: jäätiköt, merijää, ikirouta) ja <b>maaperäkehä</b> (pedosfääri). Kehät vaikuttavat toisiinsa: esimerkiksi tulivuori (kivikehä) syöttää kaasuja ilmakehään, sade (vesikehä) rapauttaa kiveä ja kasvit (elonkehä) sitovat hiilidioksidia.</p>`},
+  {n:3,th:"planeetta",dg:"valo",q:"Mitä ilmiöitä syntyy maapallon pyörimisestä oman akselinsa ympäri ja miten ne syntyvät?",hl:["pyoriminen"],
+   html:`<p>Maa pyörii akselinsa ympäri länneltä itään kerran 24 tunnissa (rotaatio).</p>
+   <ul><li><b>Vuorokausi, päivä ja yö:</b> vain aurinkoa kohti oleva puoli on valossa, ja pyöriminen vaihtaa puolta.</li>
+   <li><b>Coriolis-ilmiö:</b> pinnan nopeus on päiväntasaajalla suurin ja navoilla nolla, joten pitkän matkan liike (tuuli, merivirta, sykloni) näyttää kääntyvän: pohjoisella pallonpuoliskolla <b>oikealle</b>, eteläisellä <b>vasemmalle</b>. Siksi pasaatit tulevat koillisesta ja kaakosta ja syklonit pyörivät pohjoisessa vastapäivään.</li>
+   <li><b>Aikavyöhykkeet:</b> 360° ÷ 24 h = 15° tunnissa. Itään mentäessä kello siirtyy eteenpäin.</li>
+   <li><b>Litistyminen:</b> keskipakoisvoima pullistaa päiväntasaajaa ja litistää napoja.</li>
+   <li><b>Vuorovesi:</b> Kuun (ja Auringon) vetovoima nostaa vettä; pyöriminen vie rannikon kahdesti vuorokaudessa nousuveden kohdalle (n. 12 h 25 min välein).</li></ul>`},
+  {n:4,th:"planeetta",dg:"vuosi",q:"Mitä ilmiöitä syntyy maapallon kierroksesta auringon ympäri? Tasaus- ja seisauspäivät.",hl:["kevat","kesa","syys","talvi"],
+   html:`<p>Maa kiertää Auringon 365,25 vuorokaudessa (revoluutio), ja akseli on koko ajan kallellaan <b>23,5°</b> samaan suuntaan. Siksi säteilyn tulokulma ja päivän pituus vaihtelevat vuoden aikana: syntyvät <b>vuodenajat</b>, päivän pituuden vaihtelu ja auringon korkeuden vaihtelu. Ilman kaltevuutta ei olisi vuodenaikoja.</p>
+   <ul><li><b>Kevätpäiväntasaus 20.–21.3.:</b> aurinko zeniitissä päiväntasaajalla, päivä ja yö 12 h kaikkialla.</li>
+   <li><b>Kesäpäivänseisaus 21.–22.6.:</b> aurinko zeniitissä Kravun kääntöpiirillä. Pohjoisessa pisin päivä, napapiirin pohjoispuolella yötön yö; etelässä lyhin päivä.</li>
+   <li><b>Syyspäiväntasaus 22.–23.9.:</b> kuten keväällä, aurinko zeniitissä päiväntasaajalla.</li>
+   <li><b>Talvipäivänseisaus 21.–22.12.:</b> aurinko zeniitissä Kauriin kääntöpiirillä. Pohjoisessa lyhin päivä ja kaamos napapiirin pohjoispuolella; etelässä keskikesä.</li></ul>
+   <div class="key">Tasauspäivä = päivä ja yö tasan. Seisauspäivä = aurinko "seisahtuu" kääntöpiirillä ja kääntyy takaisin.</div>`},
+  {n:5,th:"planeetta",dg:"valo",q:"Mitkä ovat maapallon valaistusvyöhykkeet, mitkä leveyspiirit niitä rajaavat ja millaiset ovat valaistusolot?",hl:["tropiikki","lauhkeaN","lauhkeaS","kylmaN","kylmaS"],
+   html:`<ul><li><b>Tropiikki eli kuuma vyöhyke</b>, Kravun ja Kauriin kääntöpiirien välissä (23,5° N – 23,5° S): aurinko zeniitissä vähintään kerran vuodessa, päivä aina noin 12 h, lämmintä ympäri vuoden.</li>
+   <li><b>Lauhkeat vyöhykkeet</b> (kaksi), kääntöpiiristä napapiirille (23,5°–66,5°): aurinko ei koskaan zeniitissä, ei yötöntä yötä eikä kaamosta, päivän pituus vaihtelee paljon → neljä vuodenaikaa.</li>
+   <li><b>Kylmät eli polaariset vyöhykkeet</b> (kaksi), napapiiriltä navalle (66,5°–90°): kesällä yötön yö, talvella kaamos, navoilla puoli vuotta kumpaakin; aurinko aina matalalla.</li></ul>
+   <div class="key">Rajat: 23,5° kääntöpiirit, 66,5° napapiirit. 23,5 + 66,5 = 90.</div>`},
+  {n:6,th:"ilmakeha",dg:"ilmakeha",q:"Ilmakehän kerrokset lämpötilan mukaan ja niiden ilmiöt",hl:["tropo","strato","meso","termo","ekso"],
+   html:`<ul><li><b>Troposfääri</b> 0–n. 10 km: lämpötila laskee ylöspäin (6,5 °C/km). Sää: pilvet, sade, tuulet; 75 % ilmasta, lähes kaikki vesihöyry.</li>
+   <li><b>Stratosfääri</b> 10–50 km: lämpötila nousee, koska <b>otsonikerros</b> (15–35 km) imee UV-säteilyä. Tasaista, matkustajakoneet.</li>
+   <li><b>Mesosfääri</b> 50–85 km: lämpötila laskee, kylmin kohta (−90 °C). Meteorit palavat: tähdenlennot.</li>
+   <li><b>Termosfääri</b> 85–500 km: lämpötila nousee satoihin asteisiin harvassa ilmassa. Revontulet, ionosfääri, avaruusasema.</li>
+   <li><b>Eksosfääri</b> yli 500 km: siirtymä avaruuteen, satelliitteja.</li></ul>
+   <div class="key">Lämpötila: laskee – nousee – laskee – nousee. Kerrosten rajat ovat "-paussit" (tropopaussi, stratopaussi, mesopaussi).</div>`},
+  {n:7,th:"ilmakeha",dg:"ilmakeha",q:"Mikä on ilmakehän merkitys maapallolle?",hl:["tropo","otsoni"],
+   html:`<ul><li><b>Kasvihuoneilmiö:</b> vesihöyry, hiilidioksidi ja metaani pidättävät lämpöä. Keskilämpötila on +15 °C; ilman ilmakehää −18 °C.</li>
+   <li><b>Tasaa lämpötilaeroja</b> päivän ja yön sekä alueiden välillä; tuulet ja pilvet kuljettavat lämpöä ja kosteutta.</li>
+   <li><b>Suojaa säteilyltä:</b> otsonikerros imee UV-säteilyn, ilmakehä ja magneettikenttä torjuvat kosmista säteilyä.</li>
+   <li><b>Suojaa meteoreilta:</b> useimmat palavat mesosfäärissä.</li>
+   <li><b>Elämän kaasut:</b> happi hengitykseen ja palamiseen, hiilidioksidi yhteyttämiseen, typpi.</li>
+   <li><b>Veden kierto:</b> ilman ilmakehää ei olisi pilviä, sadetta eikä makeaa vettä.</li></ul>`},
+  {n:8,th:"ilmakeha",dg:"ilmakeha",q:"Mikä on otsonikerros ja miksi se on tärkeä elämälle?",hl:["otsoni"],
+   html:`<p>Otsonikerros on stratosfäärin osa noin 15–35 km korkeudessa, jossa otsonia (O₃, kolmiatominen happi) on eniten. Se <b>imee suurimman osan auringon UV-B- ja UV-C-säteilystä</b>, joka muuten aiheuttaisi ihosyöpää, silmävaurioita ja tuhoaisi kasviplanktonia ja viljelykasveja. Elämä pääsi maalle vasta, kun otsonikerros oli syntynyt.</p>
+   <p>1900-luvulla kylmälaitteiden ja suihkepullojen <b>CFC-yhdisteet</b> (freonit) hajottivat otsonia, ja Etelämantereen ylle syntyi keväisin <b>otsoniaukko</b>. <b>Montrealin pöytäkirja 1987</b> kielsi CFC:t, ja kerros elpyy hitaasti.</p>
+   <div class="key">Huom: sama otsoni on troposfäärissä haitallinen saaste (savusumu). Otsonikato ja ilmastonmuutos ovat eri ongelmia.</div>`},
+  {n:9,th:"tuulet",dg:"tuulet",q:"Miten tuuli syntyy?",hl:["L0","H30N"],
+   html:`<ol><li>Aurinko lämmittää maanpintaa <b>epätasaisesti</b>.</li>
+   <li>Lämmin ilma laajenee, kevenee ja <b>kohoaa</b> → pinnalle syntyy <b>matalapaine</b>. Kylmä ilma tiivistyy ja <b>laskeutuu</b> → <b>korkeapaine</b>.</li>
+   <li>Ilma virtaa <b>korkeapaineesta matalapaineeseen</b>: tämä virtaus on tuuli. Mitä suurempi paine-ero (tiheämmät isobaarit), sitä kovempi tuuli.</li>
+   <li><b>Coriolis-ilmiö</b> kääntää tuulen suuntaa: pohjoisessa oikealle, etelässä vasemmalle.</li></ol>
+   <p>Esimerkki pienessä mittakaavassa: päivällä maa lämpenee merta nopeammin → maalla matalapaine → <b>merituuli</b> puhaltaa mereltä maalle. Yöllä päinvastoin: maatuuli.</p>`},
+  {n:10,th:"tuulet",dg:"tuulet",q:"Planetaariset korkea- ja matalapaineen alueet ja niiden väliset tuulet",hl:["L0","H30N","L60N","HN","pasaatiN","lansiN","itaN"],
+   html:`<p><b>Painevyöhykkeet</b> (molemmilla pallonpuoliskoilla):</p>
+   <ul><li><b>0° matalapaine</b>: lämmin ilma kohoaa, sateista (ITCZ).</li><li><b>30° korkeapaine</b> (subtrooppinen): laskeva kuiva ilma, aavikot.</li><li><b>60° matalapaine</b> (polaaririntama): lämmin ja kylmä ilma kohtaavat, syklonit.</li><li><b>90° korkeapaine</b>: kylmä laskeva ilma.</li></ul>
+   <p><b>Tuulet</b> puhaltavat korkeasta matalaan ja Coriolis kääntää ne:</p>
+   <ul><li><b>Pasaatituulet</b> 30° → 0°: koillispasaati pohjoisessa, kaakkoispasaati etelässä.</li><li><b>Länsituulet</b> 30° → 60°: lounaasta pohjoisessa, luoteesta etelässä. Suomi on länsituulten vyöhykkeellä.</li><li><b>Polaariset itätuulet</b> 90° → 60°.</li></ul>
+   <p>Kiertosolut: Hadleyn solu (0–30°), Ferrelin solu (30–60°) ja polaarisolu (60–90°). Koko järjestelmä siirtyy vuodenaikojen mukana muutaman asteen auringon perässä.</p>`},
+  {n:11,th:"vesi",dg:"vesi",q:"Käy läpi hydrologinen kierto.",hl:["haihtuminen","tiivistyminen","sadanta","pintavalunta","imeytyminen","pohjavesi"],
+   html:`<p>Auringon energia käyttää kiertoa, veden kokonaismäärä ei muutu.</p>
+   <ol><li><b>Haihtuminen</b> meristä (suurin osa), järvistä ja maasta sekä <b>kasvien haihdunta</b> (transpiraatio).</li>
+   <li>Vesihöyry kohoaa ja jäähtyy → <b>tiivistyminen</b> pilviksi.</li>
+   <li><b>Sadanta</b> vetenä tai lumena; lumi voi varastoitua jäätiköihin.</li>
+   <li>Osa valuu <b>pintavaluntana</b> puroihin ja jokiin, osa <b>imeytyy</b> maahan <b>pohjavedeksi</b>.</li>
+   <li>Joet ja pohjavesi palauttavat veden mereen, ja kierto alkaa alusta.</li></ol>
+   <div class="key">Vesi viipyy ilmakehässä keskimäärin 9 päivää, valtameressä tuhansia vuosia.</div>`},
+  {n:12,th:"vesi",dg:"sade",q:"Miten sade syntyy? Orografinen sade, rintamasade ja konvektiosade",hl:["orografinen","rintamasade","konvektio"],
+   html:`<p>Sade syntyy aina samalla tavalla: kostea ilma <b>kohoaa</b> → <b>jäähtyy</b> (n. 1 °C / 100 m) → vesihöyry <b>tiivistyy</b> pilvipisaroiksi → pisarat kasvavat ja putoavat. Sadetyypit eroavat siinä, <b>mikä nostaa ilman</b>:</p>
+   <ul><li><b>Orografinen sade:</b> vuori pakottaa tuulen nousemaan. Tuulenpuoleinen rinne sateinen, suojan puoli kuiva (<b>sadevarjo</b>). Norjan rannikko, Himalaja, Andit.</li>
+   <li><b>Rintamasade:</b> lämmin ilma nousee kylmän ilmamassan päälle. Laaja, tasainen, pitkäkestoinen. Lauhkea vyöhyke, syklonit, Suomen syksy ja talvi.</li>
+   <li><b>Konvektiosade:</b> kuuma maa lämmittää ilmaa, joka kohoaa nopeasti. Kuuropilvi, rankka lyhyt sade, ukkonen, iltapäivällä. Tropiikki päivittäin, Suomi kesällä.</li></ul>`},
+  {n:13,th:"vesi",dg:"tuulet",q:"Maapallon sateisimmat ja kuivimmat alueet ja miksi",hl:["L0","H30N","H30S","HN","HS"],
+   html:`<p><b>Sateisimmat:</b></p><ul><li><b>Päiväntasaajan seutu</b> (Amazonia, Kongo, Indonesia): kuuma kostea ilma kohoaa, konvektiosateita lähes joka päivä, matalapaine.</li><li><b>Monsuunialueet</b> (Intia, Bangladesh): kesämonsuuni tuo mereltä kosteaa ilmaa. Maailman sateisin paikka on Himalajan juurella (Mawsynram).</li><li><b>Vuoristojen tuulenpuoleiset rinteet</b> länsituulten alueella (Norjan länsirannikko, Uuden-Seelannin länsirannikko): orografinen sade.</li></ul>
+   <p><b>Kuivimmat:</b></p><ul><li><b>Kääntöpiirien seutu 20–30°</b> (Sahara, Arabia, Kalahari, Australia): korkeapaine, laskeva ilma lämpenee eikä tiivisty.</li><li><b>Kylmien merivirtojen rannikot</b> (Atacama: Humboldtin virta; Namib: Benguelan virta): viileä ilma ei kohoa, vain sumua.</li><li><b>Sadevarjot ja mannerten sisäosat</b> (Gobi, Keski-Aasia): kaukana merestä ja vuorten suojassa.</li><li><b>Napa-alueet</b>: kylmä ilma sisältää hyvin vähän kosteutta. Etelämanner on kylmä aavikko.</li></ul>`},
+  {n:14,th:"vesi",dg:"tuulet",q:"Miksi merissä on merivirtoja? Mitä kylmät ja lämpimät virrat aiheuttavat?",hl:["pasaatiN","lansiN"],
+   html:`<p><b>Syyt:</b> vallitsevat <b>tuulet</b> (pasaatit ja länsituulet) työntävät pintavettä; <b>Coriolis-ilmiö</b> kääntää virrat kehiksi (pohjoisessa myötäpäivään, etelässä vastapäivään); <b>mantereiden rannat</b> ohjaavat; veden <b>lämpötila- ja suolaisuuserot</b> (tiheys) synnyttävät syvän termohaliinisen kierron.</p>
+   <p><b>Lämpimät virrat</b> kulkevat päiväntasaajalta napoja kohti: lämmittävät ja kosteuttavat rannikkoa, lisäävät sateita, satamat jäättömiä. Esim. Golfvirta ja Pohjois-Atlantin virta tekevät Norjasta ja Suomesta leutoja.</p>
+   <p><b>Kylmät virrat</b> kulkevat navoilta päiväntasaajaa kohti: viilentävät rannikkoa, ilma ei kohoa → vähän sadetta, sumua, rannikkoaavikoita (Humboldt → Atacama, Benguela → Namib, Kanarianvirta → Länsi-Sahara). Ravinteikkaita: hyvät kalavedet.</p>
+   <p>Yksityiskohtaisemmin merivirtoja voi harjoitella <a href="../merivirrat/">merivirtapelissä</a>.</p>`},
+  {n:15,th:"ilmasto",dg:"diagrammi",q:"Ilmastovyöhykkeet ja ilmastoon vaikuttavat tekijät",hl:[],
+   html:`<p><b>Ilmastovyöhykkeet:</b></p><ul><li><b>Kuuma eli trooppinen:</b> joka kuukausi yli 18 °C. Sademetsäilmasto (sadetta aina) ja savanni-ilmasto (sadekausi ja kuiva kausi).</li><li><b>Kuiva:</b> haihdunta suurempi kuin sadanta. Aavikko (alle 250 mm) ja aro.</li><li><b>Lauhkea:</b> välimeren ilmasto (kuiva kuuma kesä, sateinen leuto talvi), lauhkea merellinen (tasainen, sateinen: Länsi-Eurooppa), lauhkea mannerilmasto (kuuma kesä, kylmä talvi).</li><li><b>Kylmä eli boreaalinen:</b> pitkä lumitalvi, lyhyt kesä. Suomi.</li><li><b>Polaarinen:</b> tundra (lämpimin kuukausi 0–10 °C) ja jäätikköilmasto (aina alle 0 °C).</li><li><b>Vuoristoilmasto</b> korkeuden mukaan.</li></ul>
+   <p><b>Ilmastoon vaikuttavat tekijät:</b></p><ul><li><b>Leveysaste:</b> säteilyn tulokulma ja päivän pituus.</li><li><b>Korkeus merenpinnasta:</b> −6,5 °C / km.</li><li><b>Meren läheisyys:</b> merellisyys tasaa (pieni vuosivaihtelu), mantereisuus kärjistää (suuri vuosivaihtelu).</li><li><b>Merivirrat:</b> lämmin lämmittää ja kosteuttaa, kylmä viilentää ja kuivattaa.</li><li><b>Vallitsevat tuulet ja painevyöhykkeet:</b> länsituulet tuovat sateet, 30° korkeapaine kuivuuden.</li><li><b>Vuoristot:</b> sadevarjo, tuulen este.</li><li><b>Pinnan laatu:</b> lumi heijastaa (albedo), tumma maa lämpenee.</li></ul>`},
+  {n:16,th:"ilmasto",dg:"vaiheet",q:"Miten syklonit syntyvät? Vaiheet, rintamat ja piirtäminen",hl:["Lkeskus","lamminR","kylmaR","sektori","liike"],
+   html:`<p>Liikkuva matalapaine eli sykloni syntyy <b>polaaririntamalla</b> (n. 60°), jossa lämmin trooppinen ilma ja kylmä polaarinen ilma kohtaavat.</p>
+   <ol><li><b>Rintama:</b> ilmamassat liikkuvat vastakkaisiin suuntiin suoraa rintamaa pitkin.</li>
+   <li><b>Aalto:</b> rintamaan syntyy aalto, lämmin ilma työntyy kylmään ja paine laskee: syntyy keskus L.</li>
+   <li><b>Kypsä sykloni:</b> keskuksen edessä (kaakossa) <b>lämmin rintama</b>, takana (lounaassa) <b>kylmä rintama</b>, välissä <b>lämmin sektori</b>. Ilma kiertää keskusta vastapäivään ja koko sykloni liikkuu länsituulten mukana itään.</li>
+   <li><b>Okluusio:</b> nopeampi kylmä rintama saa lämpimän kiinni ja nostaa lämpimän ilman kokonaan ylös: okluusiorintama.</li>
+   <li><b>Hajoaminen:</b> lämmin ilma on nostettu, paine-ero tasoittuu ja sykloni täyttyy.</li></ol>
+   <p><b>Sää syklonin ohittaessa:</b> ensin korkeat cirruspilvet, pilvet paksuuntuvat ja laskevat, lämpimän rintaman edellä tasainen sade, lämpimässä sektorissa lämpenee ja sade tauolla, kylmällä rintamalla kuurot ja ukkonen, tuuli kääntyy, sitten kirkastuu ja viilenee.</p>
+   <div class="key">Piirrä: L keskelle, lämmin rintama (punainen, puoliympyrät) keskuksesta kaakkoon, kylmä rintama (sininen, kolmiot) lounaaseen, merkit liikesuuntaan, kaarevat nuolet vastapäivään ja liikesuuntanuoli itään. Kokeile "Piirrä vaihe vaiheelta" -kaaviossa.</div>`},
+  {n:17,th:"ilmasto",dg:"diagrammi",q:"Ilmastodiagrammin piirtäminen ja tulkinta",hl:["lampokayra","sadepylvaat","kuivakausi"],
+   html:`<p><b>Piirtäminen:</b> vaaka-akselille 12 kuukautta (T H M H T K H E S L M J). Vasen pystyakseli lämpötila °C, oikea sademäärä mm asteikolla <b>1 °C = 2 mm</b> (10 °C on samalla korkeudella kuin 20 mm). Kuukausien keskilämpötilat pisteinä ja yhdistetään <b>punaiseksi käyräksi</b>; sademäärät <b>sinisinä pylväinä</b>. Otsikkoon paikka, korkeus, vuoden keskilämpötila ja vuosisademäärä.</p>
+   <p><b>Tulkinta vaihe vaiheelta:</b></p><ol><li><b>Pallonpuolisko:</b> lämpimin kuukausi kesä–elokuussa → pohjoinen; joulu–helmikuussa → eteläinen; tasainen käyrä → tropiikki.</li><li><b>Lämpötila:</b> vuoden keskilämpötila (kuuma / lauhkea / kylmä) ja vuosivaihtelu = lämpimin − kylmin (pieni: merellinen tai trooppinen; suuri: mantereinen).</li><li><b>Sade:</b> vuosisademäärä ja jakautuminen. Kun pylväs jää lämpökäyrän alle → <b>kuiva kausi</b>.</li><li><b>Ilmastotyyppi:</b> esim. aina yli 18 °C ja sateista = sademetsä; kesäsateet ja kuiva talvi = savanni tai monsuuni; kuiva kesä ja leuto sateinen talvi = välimeren; alle 250 mm = aavikko; pitkä pakkastalvi = boreaalinen.</li><li><b>Selitä syyt</b> tekijöillä: leveysaste, meri, merivirrat, tuulet, vuoristot.</li></ol>`},
+];
+
+// Ilmastoasemat: 12 kuukauden keskilämpötila ja sademäärä (likiarvoja)
+const stations=[
+  {id:"helsinki",name:"Helsinki",lat:"60° N",alt:"20 m",hemi:"N",type:"boreaalinen",t:[-4,-4.5,-1.5,4,10,14.5,17.5,16,11,6,1,-2],p:[52,37,38,32,37,57,63,80,56,76,70,58],
+   why:"Pitkä pakkastalvi ja lyhyt lämmin kesä: kylmä eli boreaalinen ilmasto. Länsituulet ja Itämeri pehmentävät, joten talvi on lauhempi kuin Siperiassa samalla leveydellä."},
+  {id:"singapore",name:"Singapore",lat:"1° N",alt:"15 m",hemi:"N",type:"sademetsä",t:[26.5,27,27.5,28,28.5,28.5,28,28,27.5,27.5,27,26.5],p:[240,160,190,180,170,130,150,170,170,190,250,270],
+   why:"Päiväntasaajalla: joka kuukausi yli 26 °C ja sadetta paljon ympäri vuoden. Konvektiosateita päivittäin, ei kuivaa kautta: sademetsäilmasto."},
+  {id:"kairo",name:"Kairo",lat:"30° N",alt:"20 m",hemi:"N",type:"aavikko",t:[13.5,15,17.5,21.5,25,27.5,28,28,26.5,24,19,15],p:[5,4,4,1,1,0,0,0,0,1,3,6],
+   why:"Kravun kääntöpiirin korkeapaine: laskeva kuiva ilma, alle 30 mm vuodessa. Aavikkoilmasto, kuuma kesä ja leuto talvi."},
+  {id:"rooma",name:"Rooma",lat:"42° N",alt:"20 m",hemi:"N",type:"välimeren",t:[8,9,11,14,18,22,25,25,22,17,12,9],p:[70,70,65,60,45,35,20,30,70,110,110,90],
+   why:"Kuiva kuuma kesä (kääntöpiirin korkeapaine siirtyy kesällä pohjoiseen) ja sateinen leuto talvi (länsituulet tuovat syklonit): välimeren ilmasto."},
+  {id:"mumbai",name:"Mumbai",lat:"19° N",alt:"10 m",hemi:"N",type:"savanni/monsuuni",t:[24,25,27,28,30,29,27.5,27,27.5,28,27,25],p:[1,1,0,1,15,520,700,440,270,60,15,3],
+   why:"Kuuma ympäri vuoden; lähes kaikki sade kesä–syyskuussa, kun kesämonsuuni puhaltaa mereltä. Talvi on kuiva: monsuuni-ilmasto (trooppinen sadekausi-ilmasto)."},
+  {id:"lima",name:"Lima",lat:"12° S",alt:"150 m",hemi:"S",type:"aavikko",t:[23,23.5,23,21,19,17.5,16.5,16,16.5,17.5,19,21],p:[1,0,0,0,0,1,2,2,1,0,0,0],
+   why:"Tropiikissa mutta lähes sateeton: kylmä Humboldtin virta viilentää ilman, joka ei kohoa. Sumuinen rannikkoaavikko. Lämpimin kuukausi helmikuu → eteläinen pallonpuolisko."},
+  {id:"buenos",name:"Buenos Aires",lat:"35° S",alt:"25 m",hemi:"S",type:"lauhkea",t:[24.5,23.5,21.5,17.5,14,11,10.5,12.5,14.5,17.5,20.5,23],p:[120,120,150,110,90,60,60,65,75,120,110,110],
+   why:"Lämpimin kuukausi tammikuu → eteläinen pallonpuolisko. Leuto talvi, lämmin kesä, sadetta ympäri vuoden: lauhkea ilmasto meren lähellä."},
+  {id:"jakutsk",name:"Jakutsk",lat:"62° N",alt:"100 m",hemi:"N",type:"boreaalinen",t:[-39,-34,-20,-5,7,16,19,15,6,-8,-27,-37],p:[9,7,6,9,17,36,41,37,29,17,15,12],
+   why:"Vuosivaihtelu lähes 60 °C: äärimmäisen mantereinen. Kaukana merestä Siperian sisäosassa, talvella kylmä korkeapaine. Vähän sadetta, koska kylmä ilma on kuivaa."},
+  {id:"bergen",name:"Bergen",lat:"60° N",alt:"10 m",hemi:"N",type:"lauhkea merellinen",t:[2,2,4,7,11,14,15.5,15,12,8,5,3],p:[190,150,170,110,105,110,150,190,280,270,260,240],
+   why:"Sama leveys kuin Helsinki, mutta talvi leuto ja sadetta yli 2000 mm: lämmin Pohjois-Atlantin virta, länsituulet ja vuorten tuulenpuoleinen rinne (orografinen sade). Pieni vuosivaihtelu = merellinen."},
+  {id:"bamako",name:"Bamako",lat:"13° N",alt:"380 m",hemi:"N",type:"savanni/monsuuni",t:[25,28,31,33,33,30,27.5,27,27.5,28.5,27.5,25],p:[0,0,3,15,50,140,230,300,200,60,5,0],
+   why:"Kuuma ympäri vuoden, sadekausi kesällä (päiväntasaajan matalapaine siirtyy pohjoiseen) ja kuiva talvi (kääntöpiirin korkeapaine): savanni-ilmasto Sahelissa."},
+  {id:"barrow",name:"Utqiaġvik (Alaska)",lat:"71° N",alt:"5 m",hemi:"N",type:"tundra",t:[-25,-26,-24,-16,-6,2,5,4,0,-9,-17,-22],p:[4,4,3,4,4,8,22,26,15,12,6,5],
+   why:"Lämpimin kuukausi vain 5 °C, muut kuukaudet enimmäkseen pakkasella: tundrailmasto. Sadetta hyvin vähän, koska kylmä ilma on kuivaa."},
+  {id:"perth",name:"Perth",lat:"32° S",alt:"20 m",hemi:"S",type:"välimeren",t:[24.5,25,23,20,16.5,14,13,13,14.5,16.5,19.5,22.5],p:[15,15,20,40,110,175,170,130,80,45,25,10],
+   why:"Eteläinen pallonpuolisko: kesä joulu–helmikuussa, ja se on kuiva; sateet talvella kesä–elokuussa. Välimeren ilmasto etelässä."},
+];
+const climTypes=["sademetsä","savanni/monsuuni","aavikko","välimeren","lauhkea merellinen","lauhkea","boreaalinen","tundra"];
+const MON=["T","H","M","H","T","K","H","E","S","L","M","J"];
+const MONF=["tammikuu","helmikuu","maaliskuu","huhtikuu","toukokuu","kesäkuu","heinäkuu","elokuu","syyskuu","lokakuu","marraskuu","joulukuu"];
+// ---------- kaaviot (SVG). DG[id](hl, opts) -> svg-merkkijono. hl = korostettu kohde (id tai lista), opts.labels=false piilottaa nimilaput.
+const DEFS=`<defs>
+<marker id="a-ink" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1c2a36"/></marker>
+<marker id="a-warm" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#d1452b"/></marker>
+<marker id="a-cold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#2757a8"/></marker>
+<marker id="a-acc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1f6f8b"/></marker>
+<marker id="a-sun" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#e0a020"/></marker>
+</defs>`;
+const svgOpen=(w,h)=>`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img">${DEFS}`;
+const isHl=(hl,id)=>Array.isArray(hl)?hl.includes(id):hl===id;
+const hit=(id,inner,hl)=>`<g class="hit${isHl(hl,id)?" hl":""}" data-item="${id}" tabindex="0" role="button" aria-label="${items[id]?items[id].name:id}">${inner}</g>`;
+const T=(x,y,t,o={})=>`<text class="${o.ax?"ax":"lbl"}${o.hide?" hidden":""}" x="${x}" y="${y}" font-size="${o.s||12.5}" text-anchor="${o.a||"start"}" fill="${o.c||"#1c2a36"}" font-weight="${o.w||400}">${t}</text>`;
+const arrow=(x1,y1,x2,y2,c="ink",w=2,extra="")=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${{ink:"#1c2a36",warm:"#d1452b",cold:"#2757a8",acc:"#1f6f8b",sun:"#e0a020"}[c]}" stroke-width="${w}" marker-end="url(#a-${c})" ${extra}/>`;
+const cloud=(x,y,s=1,c="#dfe7ee")=>`<g transform="translate(${x},${y}) scale(${s})"><ellipse cx="0" cy="0" rx="34" ry="14" fill="${c}"/><circle cx="-12" cy="-8" r="13" fill="${c}"/><circle cx="6" cy="-11" r="15" fill="${c}"/><circle cx="20" cy="-4" r="11" fill="${c}"/></g>`;
+const rain=(x,y,n=4,len=14,c="#2757a8")=>{let s="";for(let i=0;i<n;i++)s+=`<line x1="${x+i*9}" y1="${y}" x2="${x+i*9-4}" y2="${y+len}" stroke="${c}" stroke-width="1.6"/>`;return s;};
+const sun=(x,y,r=16)=>{let s=`<circle cx="${x}" cy="${y}" r="${r}" fill="#f2b134"/>`;for(let i=0;i<8;i++){const a=i*Math.PI/4;s+=`<line x1="${x+Math.cos(a)*(r+5)}" y1="${y+Math.sin(a)*(r+5)}" x2="${x+Math.cos(a)*(r+13)}" y2="${y+Math.sin(a)*(r+13)}" stroke="#f2b134" stroke-width="2.5"/>`}return s;};
+const DG={};
+
+// --- Maan energialähteet ja kehät
+DG.maa=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  let s=svgOpen(640,380);
+  // Earth cross-section
+  s+=`<circle cx="190" cy="220" r="150" fill="#8a6d3b"/><circle cx="190" cy="220" r="142" fill="#e2893a"/><circle cx="190" cy="220" r="62" fill="#f0c04a"/>`;
+  s+=T(190,224,"ydin",{a:"middle",s:12,w:600,ax:true})+T(190,140,"vaippa",{a:"middle",s:12,ax:true})+T(190,82,"kuori",{a:"middle",s:11,ax:true});
+  // volcano on surface (top-right of circle)
+  s+=`<polygon points="285,108 320,60 355,108" fill="#7b5a3a"/><path d="M312 60 L320 40 L328 60" fill="#d1452b"/><path d="M300 75 q20 -35 40 0" fill="none" stroke="#d1452b" stroke-width="3"/>`;
+  s+=hit("ydin",`<circle class="zone" cx="190" cy="220" r="150" fill="transparent" stroke="none"/>`+arrow(230,180,300,110,"warm",2.5)+T(300,150,"laattaliikunnot, tulivuoret,",Object.assign({s:11.5,c:"#8a2a1a"},H))+T(300,164,"maanjäristykset, vuoret",Object.assign({s:11.5,c:"#8a2a1a"},H))+T(300,182,"→ rakentaa pinnanmuotoja",Object.assign({s:11.5,w:600,c:"#8a2a1a"},H))+T(60,60,"Sisäsyntyinen energia",Object.assign({s:14,w:600,c:"#8a2a1a"},H))+T(60,76,"Maan sisäinen lämpö",Object.assign({s:11.5,c:"#8a2a1a"},H)),hl);
+  // sun and exogenic arrows
+  s+=hit("aurinko",`<circle class="zone" cx="560" cy="60" r="44" fill="transparent"/>`+sun(560,60,22)+arrow(530,95,470,150,"sun",2.5)+arrow(560,95,560,150,"sun",2.5)+T(430,205,"tuuli, sade, joet, jäätiköt, aallot",Object.assign({s:11.5,c:"#8a6a10"},H))+T(430,221,"→ rapauttaa, kuluttaa, kasaa",Object.assign({s:11.5,c:"#8a6a10"},H))+T(430,239,"→ tasoittaa pinnanmuotoja",Object.assign({s:11.5,w:600,c:"#8a6a10"},H))+T(415,35,"Ulkosyntyinen energia",Object.assign({s:14,w:600,c:"#8a6a10"},H))+T(415,51,"Auringon säteily",Object.assign({s:11.5,c:"#8a6a10"},H)),hl);
+  s+=cloud(455,180,.7)+rain(440,192,3,10);
+  // kehät as stacked bars bottom-right
+  const K=[["elonkeha","Elonkehä (biosfääri)","#cfe8d2"],["ilmakehaK","Ilmakehä (atmosfääri)","#dbe9f5"],["vesikeha","Vesikehä (hydrosfääri)","#bcd9ec"],["kivikeha","Kivikehä (litosfääri)","#e6d9b8"]];
+  K.forEach(([id,n,c],i)=>{const y=262+i*28;s+=hit(id,`<rect class="zone" x="400" y="${y}" width="220" height="24" rx="5" fill="${c}" stroke="#c7d0d8"/>`+T(410,y+16.5,n,Object.assign({s:12.5},H)),hl);});
+  s+=T(400,254,"Maapallon kehät",{s:12,c:"#5b6b78",ax:true});
+  return s+"</svg>";
+};
+
+// --- Valaistusvyöhykkeet (globe tilted 23.5°, sun on the right: 21.6.)
+DG.valo=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  const cx=345,cy=215,R=160,tilt=-23.5*Math.PI/180;
+  const rot=(x,y)=>[cx+x*Math.cos(tilt)-y*Math.sin(tilt),cy+x*Math.sin(tilt)+y*Math.cos(tilt)];
+  const pt=(lat,side)=>rot(side*R*Math.cos(lat*Math.PI/180),-R*Math.sin(lat*Math.PI/180));
+  const band=(a,b)=>{let p=[];for(let l=a;l<=b;l+=2)p.push(pt(l,1));for(let l=b;l>=a;l-=2)p.push(pt(l,-1));return p.map(q=>q.map(v=>v.toFixed(1)).join(",")).join(" ");};
+  const mid=lat=>rot(0,-R*Math.sin(lat*Math.PI/180));
+  let s=svgOpen(640,430);
+  s+=`<clipPath id="globe"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>`;
+  // axis: hit region first (zones cover it inside the globe), visible line later
+  const [ax1,ay1]=rot(0,-R-28),[ax2,ay2]=rot(0,R+28);
+  s+=hit("akseli",`<line class="zone" x1="${ax1}" y1="${ay1}" x2="${ax2}" y2="${ay2}" stroke="transparent" stroke-width="14"/><circle cx="${ax1}" cy="${ay1}" r="16" fill="transparent"/>`+T(cx-10,cy-R-30,"akseli 23,5°",Object.assign({a:"end",s:11.5},H)),hl);
+  const zones=[["kylmaN",66.5,90,"#cfe3ef","Kylmä vyöhyke",78],["lauhkeaN",23.5,66.5,"#dcebd2","Lauhkea vyöhyke",45],["tropiikki",-23.5,23.5,"#fbe3c4","Tropiikki",0],["lauhkeaS",-66.5,-23.5,"#dcebd2","Lauhkea vyöhyke",-45],["kylmaS",-90,-66.5,"#cfe3ef","Kylmä vyöhyke",-78]];
+  zones.forEach(([id,a,b,c,n,m])=>{const [mx,my]=mid(m);s+=hit(id,`<polygon class="zone" points="${band(a,b)}" fill="${c}" stroke="#fff" stroke-width="1"/>`+T(mx,my+4,n,Object.assign({a:"middle",s:12.5,w:600},H)),hl);});
+  // night shading (left half, sun at right)
+  s+=`<rect x="${cx-R-2}" y="${cy-R-2}" width="${R+2}" height="${2*R+4}" fill="#1c2a36" opacity=".28" clip-path="url(#globe)" pointer-events="none"/>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#1c2a36" stroke-width="1.5" pointer-events="none"/>`;
+  // latitude lines
+  const lines=[["paivantasaaja",0,"Päiväntasaaja 0°"],["kravun",23.5,"Kravun kääntöpiiri 23,5° N"],["kauriin",-23.5,"Kauriin kääntöpiiri 23,5° S"],["napapiiriN",66.5,"Pohjoinen napapiiri 66,5° N"],["napapiiriS",-66.5,"Eteläinen napapiiri 66,5° S"]];
+  lines.forEach(([id,lat,n])=>{const [x1,y1]=pt(lat,-1),[x2,y2]=pt(lat,1);const dash=lat===0?"":"6 4";
+    s+=hit(id,`<line class="zone" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="transparent" stroke-width="10"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#1c2a36" stroke-width="${lat===0?2.2:1.4}" stroke-dasharray="${dash}" pointer-events="none"/>`+T(x1-8,y1+4,n,Object.assign({a:"end",s:11.5},H)),hl);});
+  s+=`<line x1="${ax1}" y1="${ay1}" x2="${ax2}" y2="${ay2}" stroke="#1c2a36" stroke-width="2" pointer-events="none"/><line x1="${cx}" y1="${cy-R-28}" x2="${cx}" y2="${cy-R+10}" stroke="#5b6b78" stroke-width="1" stroke-dasharray="3 3" pointer-events="none"/>`+T(ax1+6,ay1-2,"N",{s:12,w:600,ax:true})+T(ax2+6,ay2+12,"S",{s:12,w:600,ax:true});
+  // rotation arrow around north pole
+  const [rx,ry]=rot(0,-R-44);
+  s+=hit("pyoriminen",`<path class="zone" d="M${rx-45} ${ry+12} q45 -28 90 0" fill="none" stroke="transparent" stroke-width="18"/><path d="M${rx-45} ${ry+12} q45 -28 90 0" fill="none" stroke="#1f6f8b" stroke-width="2" marker-end="url(#a-acc)" pointer-events="none"/>`+T(rx+52,ry+4,"pyörii länneltä itään, 24 h",Object.assign({s:11.5,c:"#1f6f8b"},H)),hl);
+  // sun rays from the right
+  s+=sun(608,215,20);
+  for(let y=80;y<=350;y+=45)s+=arrow(580,y,cx+R+16,y,"sun",1.8);
+  s+=T(600,262,"21.6.",{a:"middle",s:12,w:600,ax:true})+T(600,276,"pohjoinen",{a:"middle",s:11,ax:true})+T(600,289,"kesä",{a:"middle",s:11,ax:true});
+  s+=T(20,408,"Varjostettu puoli on yössä. Tilanne 21.6.: pohjoinen napa-alue on kokonaan valossa (yötön yö),",{s:11,c:"#5b6b78",ax:true})+T(20,422,"eteläinen kokonaan pimeässä (kaamos). Talvella 21.12. tilanne on päinvastainen.",{s:11,c:"#5b6b78",ax:true});
+  return s+"</svg>";
+};
+
+// --- Kierto auringon ympäri
+DG.vuosi=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  let s=svgOpen(640,340);
+  s+=`<ellipse cx="320" cy="170" rx="270" ry="105" fill="none" stroke="#aeb8c1" stroke-dasharray="5 5"/>`;
+  s+=sun(320,170,26)+T(320,214,"Aurinko",{a:"middle",s:12,ax:true});
+  const E=[["kesa",50,170,"right","21.–22.6.","zeniitti Kravun kääntöpiirillä","pohjoisessa kesä"],["talvi",590,170,"left","21.–22.12.","zeniitti Kauriin kääntöpiirillä","pohjoisessa talvi"],["kevat",320,58,"down","20.–21.3.","zeniitti päiväntasaajalla","päivä = yö"],["syys",320,282,"up","22.–23.9.","zeniitti päiväntasaajalla","päivä = yö"]];
+  E.forEach(([id,x,y,lit,d,z,n])=>{
+    const r=27,sn=Math.sin(23.5*Math.PI/180),cs=Math.cos(23.5*Math.PI/180);
+    let night;
+    if(lit==="right")night=`<rect x="${x-r}" y="${y-r}" width="${r}" height="${2*r}"/>`;else if(lit==="left")night=`<rect x="${x}" y="${y-r}" width="${r}" height="${2*r}"/>`;else if(lit==="down")night=`<rect x="${x-r}" y="${y-r}" width="${2*r}" height="${r}"/>`;else night=`<rect x="${x-r}" y="${y}" width="${2*r}" height="${r}"/>`;
+    const lx=id==="talvi"?x-r-10:x+r+10, anchor=id==="talvi"?"end":"start", ly=id==="kevat"?y-4:id==="syys"?y-4:y-14;
+    s+=hit(id,`<clipPath id="c-${id}"><circle cx="${x}" cy="${y}" r="${r}"/></clipPath><circle class="zone" cx="${x}" cy="${y}" r="${r+4}" fill="transparent"/><circle cx="${x}" cy="${y}" r="${r}" fill="#cfe3ef"/><path d="M${x-r} ${y+6} q${r} -20 ${2*r} 0" fill="#bcd0a8" clip-path="url(#c-${id})"/><g fill="#1c2a36" opacity=".45" clip-path="url(#c-${id})">${night}</g><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#1c2a36" stroke-width="1.2"/><line x1="${x-sn*40}" y1="${y+cs*40}" x2="${x+sn*40}" y2="${y-cs*40}" stroke="#1c2a36" stroke-width="1.8"/><line x1="${x-cs*r}" y1="${y-sn*r}" x2="${x+cs*r}" y2="${y+sn*r}" stroke="#1c2a36" stroke-width="1" stroke-dasharray="3 2"/>`
+      +T(x+sn*40+3,y-cs*40-2,"N",{s:10,w:600,ax:true})
+      +T(lx,ly,d,Object.assign({a:anchor,s:12.5,w:600},H))
+      +T(lx,ly+15,z,Object.assign({a:anchor,s:11},H))
+      +T(lx,ly+29,n,Object.assign({a:anchor,s:11,c:"#5b6b78"},H)),hl);
+  });
+  s+=`<path d="M130 232 q30 34 95 46" fill="none" stroke="#5b6b78" stroke-width="1.5" marker-end="url(#a-ink)"/>`+T(60,226,"kiertosuunta, 365,25 vrk",{s:11,c:"#5b6b78",ax:true});
+  s+=T(20,318,"Akseli osoittaa koko ajan samaan suuntaan (23,5°). Siksi kesällä pohjoinen napa on kallellaan",{s:11,c:"#5b6b78",ax:true})+T(20,332,"aurinkoa kohti ja talvella siitä poispäin. Kierto vastapäivään ylhäältä katsottuna.",{s:11,c:"#5b6b78",ax:true});
+  return s+"</svg>";
+};
+
+// --- Ilmakehän kerrokset
+DG.ilmakeha=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  const kmY=km=>km<=10?400-km*9:km<=50?310-(km-10)*2.5:km<=85?210-(km-50)*(90/35):120-(km-85)*(80/35);
+  const tX=t=>Math.min(290,80+(t+100)*1.33);
+  let s=svgOpen(640,440);
+  const L=[["tropo",0,10,"#dbe9f5","Troposfääri","0–10 km · sää, pilvet, sade · lämpötila laskee"],["strato",10,50,"#e9f0f6","Stratosfääri","10–50 km · otsonikerros · lämpötila nousee"],["meso",50,85,"#f2f5f8","Mesosfääri","50–85 km · kylmin, meteorit palavat · lämpötila laskee"],["termo",85,120,"#f8f9fb","Termosfääri","85–500 km · revontulet, avaruusasema · lämpötila nousee"]];
+  L.forEach(([id,a,b,c,n,d])=>{const y1=kmY(b),y2=kmY(a);s+=hit(id,`<rect class="zone" x="60" y="${y1}" width="240" height="${y2-y1}" fill="${c}" stroke="#c7d0d8"/><rect x="305" y="${y1}" width="330" height="${y2-y1}" fill="transparent"/>`+T(312,y1+16,n,Object.assign({s:13.5,w:600},H))+T(312,y1+31,d,Object.assign({s:10.5,c:"#5b6b78"},H)),hl);});
+  s+=hit("ekso",`<rect class="zone" x="60" y="18" width="240" height="22" fill="#fbfcfd" stroke="#c7d0d8"/><rect x="305" y="18" width="330" height="22" fill="transparent"/>`+T(312,33,"Eksosfääri · yli 500 km, siirtyy avaruuteen",Object.assign({s:11.5,w:600},H)),hl);
+  // ozone band
+  s+=hit("otsoni",`<rect class="zone" x="60" y="${kmY(35)}" width="240" height="${kmY(15)-kmY(35)}" fill="#c9b8e8" opacity=".75" stroke="#8a6fc0"/>`+T(64,kmY(25)+4,"otsonikerros 15–35 km",Object.assign({s:11,c:"#4a2f80",w:600},H)),hl);
+  // icons
+  s+=cloud(110,375,.7)+rain(95,385,3,10)+`<path d="M230 318 l30 -6 l-4 6 l4 6z" fill="#5b6b78"/>`+T(262,322,"lentokone",{s:9.5,c:"#5b6b78",ax:true});
+  s+=`<line x1="200" y1="150" x2="240" y2="185" stroke="#e0a020" stroke-width="2"/><circle cx="240" cy="185" r="3" fill="#e0a020"/>`+T(160,150,"meteori",{s:9.5,c:"#5b6b78",ax:true});
+  s+=`<path d="M90 70 q15 -20 30 0 q15 20 30 0 q15 -20 30 0" fill="none" stroke="#3aa76d" stroke-width="3" opacity=".8"/>`+T(190,76,"revontulet",{s:9.5,c:"#5b6b78",ax:true});
+  // temp curve
+  const pts=[[0,15],[10,-55],[20,-55],[50,0],[85,-90],[100,-60],[120,20]].map(([k,t])=>`${tX(t)},${kmY(k)}`).join(" ");
+  s+=`<polyline points="${pts}" fill="none" stroke="#d1452b" stroke-width="2.5" pointer-events="none"/>`;
+  s+=T(tX(20)+4,kmY(115),"→ satoja °C",{s:10,c:"#d1452b",ax:true});
+  // axes
+  [-100,-50,0,50].forEach(t=>{s+=`<line x1="${tX(t)}" y1="400" x2="${tX(t)}" y2="406" stroke="#5b6b78"/>`+T(tX(t),420,t+" °C",{a:"middle",s:10.5,ax:true});});
+  [0,10,50,85].forEach(k=>{s+=T(56,kmY(k)+4,k+" km",{a:"end",s:10.5,c:"#5b6b78",ax:true});});
+  s+=T(180,435,"punainen käyrä = lämpötila",{a:"middle",s:10.5,c:"#d1452b",ax:true});
+  return s+"</svg>";
+};
+
+// --- Painevyöhykkeet ja tuulet
+DG.tuulet=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  const Y=lat=>210-lat*2;
+  let s=svgOpen(640,430);
+  s+=`<rect x="120" y="${Y(90)}" width="300" height="360" fill="#eef4f8" stroke="#c7d0d8"/>`;
+  const W=[["itaN",[330,Y(88)],[230,Y(63)],"polaariset itätuulet"],["lansiN",[230,Y(33)],[330,Y(57)],"länsituulet (lounaasta)"],["pasaatiN",[330,Y(27)],[230,Y(3)],"koillispasaati"],["pasaatiS",[330,Y(-27)],[230,Y(-3)],"kaakkoispasaati"],["lansiS",[230,Y(-33)],[330,Y(-57)],"länsituulet (luoteesta)"],["itaS",[330,Y(-88)],[230,Y(-63)],"polaariset itätuulet"]];
+  W.forEach(([id,[x1,y1],[x2,y2],n])=>{const ymin=Math.min(y1,y2),ymax=Math.max(y1,y2);
+    s+=hit(id,`<rect class="zone" x="120" y="${ymin-3}" width="300" height="${ymax-ymin+6}" fill="transparent"/>`+arrow(x1-70,y1,x2-70,y2,"acc",2.2)+arrow(x1+70,y1,x2+70,y2,"acc",2.2)+T(270,(y1+y2)/2+4,n,Object.assign({a:"middle",s:11.5,w:600,c:"#1f6f8b"},H)),hl);});
+  const P=[["HN",90,"H","napa: H, kylmä laskeva ilma"],["L60N",60,"L","60°: L, polaaririntama, syklonit"],["H30N",30,"H","30°: H, laskeva ilma, aavikot"],["L0",0,"L","0°: L, kohoava ilma, sateet"],["H30S",-30,"H","30°: H, laskeva ilma, aavikot"],["L60S",-60,"L","60°: L, polaaririntama, myrskyt"],["HS",-90,"H","napa: H, kylmä laskeva ilma"]];
+  P.forEach(([id,lat,hl_,d])=>{const y=Y(lat);const c=hl_==="H"?"#2757a8":"#d1452b";
+    s+=hit(id,`<rect class="zone" x="120" y="${y-16}" width="300" height="32" fill="${hl_==="H"?"#dbe4f5":"#fbe6e2"}" stroke="none"/><line x1="120" y1="${y}" x2="420" y2="${y}" stroke="${c}" stroke-width="1.2" stroke-dasharray="4 3"/><circle cx="270" cy="${y}" r="11" fill="#fff" stroke="${c}" stroke-width="2"/><text x="270" y="${y+4.5}" font-size="13" font-weight="700" text-anchor="middle" fill="${c}">${hl_}</text>`+T(428,y+4,d,Object.assign({s:10.5},H)),hl);
+    s+=T(112,y+4,(lat===0?"0°":Math.abs(lat)+"° "+(lat>0?"N":"S")),{a:"end",s:11,ax:true,c:"#5b6b78"});});
+  // cells on far right
+  const cell=(y1,y2,n,dir)=>{const x1=600,x2=632;const up=dir===1;return `<path d="M${up?x1:x2} ${y1} L${up?x1:x2} ${y2} L${up?x2:x1} ${y2} L${up?x2:x1} ${y1} Z" fill="none" stroke="#5b6b78" stroke-width="1.3" marker-end="url(#a-ink)"/>`+T(616,(y1+y2)/2+4,n,{a:"middle",s:8.5,c:"#5b6b78",ax:true});};
+  s+=cell(Y(0),Y(30),"Hadley",1)+cell(Y(30),Y(60),"Ferrel",-1)+cell(Y(60),Y(90),"polaari",1);
+  s+=T(20,418,"Tuuli puhaltaa korkeapaineesta (H) matalapaineeseen (L). Coriolis kääntää: pohjoisessa oikealle, etelässä vasemmalle.",{s:10.5,c:"#5b6b78",ax:true});
+  return s+"</svg>";
+};
+
+// --- Hydrologinen kierto
+DG.vesi=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  let s=svgOpen(640,380);
+  s+=`<rect x="0" y="0" width="640" height="380" fill="#eaf3f9"/>`;
+  s+=`<polygon points="250,250 330,215 400,170 520,80 600,150 640,180 640,380 250,380" fill="#cdb98f"/><polygon points="250,250 330,215 400,170 520,80 600,150 640,180 640,200 600,170 520,105 400,190 330,232 250,262" fill="#9ec27a"/><polygon points="497,98 520,80 543,98 530,110 512,110" fill="#fff"/>`;
+  s+=`<rect x="0" y="250" width="250" height="130" fill="#7fb3d5"/><rect x="0" y="250" width="250" height="4" fill="#5b96c0"/>`;
+  s+=`<rect x="250" y="300" width="390" height="80" fill="#b39a6d" opacity=".5"/>`;
+  s+=sun(60,50,18);
+  // trees
+  [[330,205],[350,198],[370,190]].forEach(([x,y])=>{s+=`<rect x="${x-2}" y="${y}" width="4" height="12" fill="#6b4a2a"/><polygon points="${x-9},${y+2} ${x},${y-16} ${x+9},${y+2}" fill="#3f8a4a"/>`;});
+  // clouds
+  s+=cloud(300,110,.9)+cloud(470,62,1.1);
+  const A=(id,inner,x,y,n)=>hit(id,inner+T(x,y,n,Object.assign({s:11.5,w:600},H)),hl);
+  s+=A("haihtuminen",`<rect class="zone" x="80" y="140" width="90" height="105" fill="transparent"/>`+arrow(110,240,110,160,"acc",2)+arrow(140,240,140,160,"acc",2),80,132,"haihtuminen");
+  s+=A("transpiraatio",`<rect class="zone" x="318" y="130" width="70" height="60" fill="transparent"/>`+arrow(352,185,352,140,"acc",1.8),318,124,"kasvien haihdunta");
+  s+=A("tiivistyminen",`<ellipse class="zone" cx="300" cy="104" rx="52" ry="30" fill="transparent"/>`,255,68,"tiivistyminen pilviksi");
+  s+=A("sadanta",`<rect class="zone" x="420" y="75" width="105" height="60" fill="transparent"/>`+rain(440,90,6,18),520,50,"sadanta");
+  s+=`<polyline points="470,140 440,175 400,200 350,225 300,240 255,252" fill="none" stroke="#5b96c0" stroke-width="4" pointer-events="none"/>`;
+  s+=A("pintavalunta",`<polyline class="zone" points="470,140 440,175 400,200 350,225 300,240 255,252" fill="none" stroke="transparent" stroke-width="18"/>`+arrow(300,240,262,251,"cold",2),400,215,"pintavalunta (joet)");
+  s+=A("imeytyminen",`<rect class="zone" x="520" y="200" width="60" height="70" fill="transparent"/>`+arrow(540,205,540,260,"cold",1.8)+arrow(560,215,560,265,"cold",1.8),505,196,"imeytyminen");
+  s+=A("pohjavesi",`<rect class="zone" x="255" y="305" width="330" height="40" fill="transparent"/>`+`<line x1="560" y1="325" x2="270" y2="325" stroke="#2757a8" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#a-cold)"/>`,380,350,"pohjavesi virtaa hitaasti mereen");
+  s+=T(60,300,"meri",{s:12,c:"#fff",w:600,ax:true})+T(20,370,"Auringon energia käyttää kiertoa. Veden määrä ei muutu.",{s:10.5,c:"#5b6b78",ax:true});
+  return s+"</svg>";
+};
+
+// --- Kolme sadetyyppiä
+DG.sade=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  let s=svgOpen(640,270);
+  const panel=(id,x,inner,title,sub)=>hit(id,`<rect class="zone" x="${x}" y="8" width="204" height="254" rx="8" fill="#f4f8fb" stroke="#c7d0d8"/>`+inner+T(x+102,236,title,Object.assign({a:"middle",s:13,w:600},H))+T(x+102,252,sub,Object.assign({a:"middle",s:10.5,c:"#5b6b78"},H)),hl);
+  // orografinen
+  let p1=`<polygon points="${20},215 ${120},70 ${210},215" fill="#b39a6d"/>`+arrow(22,165,66,132,"acc",2.2)+T(18,182,"tuuli mereltä",{s:9.5,c:"#1f6f8b",ax:true})+cloud(85,80,.7)+rain(72,92,3,14)+sun(190,45,10)+T(150,150,"sadevarjo",{s:10,c:"#8a6a10",ax:true})+T(150,163,"kuiva, lämmin",{s:9.5,c:"#8a6a10",ax:true})+T(20,110,"nousee,",{s:9.5,ax:true})+T(20,122,"jäähtyy",{s:9.5,ax:true});
+  s+=panel("orografinen",8,p1,"Orografinen sade","vuori nostaa: Norja, Himalaja, Andit");
+  // rintamasade
+  let p2=`<polygon points="${226},215 ${420},215 ${420},110" fill="#cfe3ef"/>`+`<path d="M232 175 L400 118" fill="none" stroke="#d1452b" stroke-width="2.5" marker-end="url(#a-warm)"/>`+T(236,192,"lämmin ilma nousee",{s:10,c:"#d1452b",ax:true})+T(345,205,"kylmä ilma",{s:10,c:"#2757a8",ax:true})+`<rect x="255" y="60" width="150" height="30" rx="12" fill="#dfe7ee"/>`+rain(270,95,9,16)+T(330,80,"laaja tasainen sade",{a:"middle",s:9.5,ax:true});
+  s+=panel("rintamasade",218,p2,"Rintamasade","lauhkea vyöhyke, syklonit, Suomi");
+  // konvektio
+  let p3=sun(455,40,12)+`<rect x="436" y="205" width="196" height="12" fill="#e2893a"/>`+arrow(500,200,500,150,"warm",2)+arrow(540,200,540,150,"warm",2)+arrow(580,200,580,150,"warm",2)+`<g fill="#c9d3dc"><ellipse cx="540" cy="135" rx="45" ry="16"/><ellipse cx="540" cy="105" rx="38" ry="18"/><ellipse cx="545" cy="75" rx="50" ry="16"/></g>`+rain(505,155,7,20)+`<polyline points="575,150 568,168 578,166 570,186" fill="none" stroke="#e0a020" stroke-width="2"/>`+T(470,130,"kohoaa",{s:9.5,c:"#d1452b",ax:true})+T(470,142,"nopeasti",{s:9.5,c:"#d1452b",ax:true})+T(480,226,"kuuma maa",{s:9.5,c:"#8a2a1a",ax:true});
+  s+=panel("konvektio",428,p3,"Konvektiosade","tropiikki, kesäukkoset, iltapäivä");
+  return s+"</svg>";
+};
+
+// --- Sykloni ylhäältä. opts.step: 1 L, 2 +lämmin rintama, 3 +kylmä rintama, 4 +sektori ja ilmamassat, 5 +kierto ja liike (oletus kaikki)
+function frontPath(x1,y1,x2,y2,kind,color){
+  const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy),d=[dx/len,dy/len];let n=[-d[1],d[0]];
+  if(kind==="warm"&&n[0]<0)n=[-n[0],-n[1]];if(kind==="cold"&&n[0]<0)n=[-n[0],-n[1]];
+  let s=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3"/>`;
+  [0.25,0.5,0.75].forEach(t=>{const px=x1+dx*t,py=y1+dy*t;
+    if(kind==="warm"){let pts=[];for(let a=0;a<=Math.PI;a+=Math.PI/8){pts.push(`${(px+9*Math.cos(a)*d[0]+9*Math.sin(a)*n[0]).toFixed(1)},${(py+9*Math.cos(a)*d[1]+9*Math.sin(a)*n[1]).toFixed(1)}`);}s+=`<polygon points="${pts.join(" ")}" fill="${color}"/>`;}
+    else{s+=`<polygon points="${px-9*d[0]},${py-9*d[1]} ${px+9*d[0]},${py+9*d[1]} ${px+15*n[0]},${py+15*n[1]}" fill="${color}"/>`;}});
+  return s;
+}
+DG.sykloni=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};const step=o.step||5;
+  const L=[300,180],WF=[520,330],CF=[110,340];
+  let s=svgOpen(640,420);
+  s+=`<rect x="0" y="0" width="640" height="420" fill="#f7fafc"/>`;
+  if(step>=4){
+    s+=hit("sektori",`<polygon class="zone" points="${L[0]},${L[1]} ${WF[0]},${WF[1]} ${WF[0]-60},${400} ${CF[0]+40},${400} ${CF[0]},${CF[1]}" fill="#fbe6e2" stroke="none"/>`+T(305,330,"lämmin sektori",Object.assign({a:"middle",s:13,w:600,c:"#8a2a1a"},H))+T(305,346,"lämmintä, kosteaa, tuuli lounaasta",Object.assign({a:"middle",s:10.5,c:"#8a2a1a"},H)),hl);
+    s+=T(90,110,"kylmä ilma",{s:12.5,w:600,c:"#2757a8"})+T(560,200,"kylmä ilma",{s:12.5,w:600,c:"#2757a8"})+T(545,216,"(edellä)",{s:10.5,c:"#2757a8"});
+    // rain bands
+    s+=`<polygon points="${L[0]+20},${L[1]-40} ${WF[0]+70},${WF[1]-10} ${WF[0]+30},${WF[1]+40} ${L[0]-40},${L[1]+10}" fill="#2757a8" opacity=".08" pointer-events="none"/>`+T(470,250,"laaja tasainen sade",{s:10,c:"#2757a8",ax:true});
+    s+=`<polygon points="${L[0]-30},${L[1]+20} ${CF[0]-20},${CF[1]+10} ${CF[0]+10},${CF[1]+30} ${L[0]-5},${L[1]+35}" fill="#2757a8" opacity=".14" pointer-events="none"/>`+T(135,300,"kuurot, ukkonen",{s:10,c:"#2757a8",ax:true});
+  }
+  if(step>=2)s+=hit("lamminR",`<line class="zone" x1="${L[0]}" y1="${L[1]}" x2="${WF[0]}" y2="${WF[1]}" stroke="transparent" stroke-width="26"/>`+frontPath(L[0],L[1],WF[0],WF[1],"warm","#d1452b")+T(WF[0]-20,WF[1]+34,"lämmin rintama",Object.assign({a:"end",s:12.5,w:600,c:"#d1452b"},H)),hl);
+  if(step>=3)s+=hit("kylmaR",`<line class="zone" x1="${L[0]}" y1="${L[1]}" x2="${CF[0]}" y2="${CF[1]}" stroke="transparent" stroke-width="26"/>`+frontPath(L[0],L[1],CF[0],CF[1],"cold","#2757a8")+T(CF[0]+20,CF[1]+34,"kylmä rintama",Object.assign({s:12.5,w:600,c:"#2757a8"},H)),hl);
+  if(step>=5){
+    const arc=(r,a1,a2)=>{const p=a=>[L[0]+r*Math.cos(a),L[1]+r*Math.sin(a)];const [x1,y1]=p(a1),[x2,y2]=p(a2);return `<path d="M${x1} ${y1} A${r} ${r} 0 0 0 ${x2} ${y2}" fill="none" stroke="#1c2a36" stroke-width="1.8" marker-end="url(#a-ink)"/>`;};
+    s+=arc(70,0.3,-1.4)+arc(100,-2.0,-3.6)+arc(120,2.8,1.3)+T(210,120,"vastapäivään",{s:10.5,ax:true});
+    s+=hit("liike",`<rect class="zone" x="330" y="40" width="150" height="40" fill="transparent"/>`+arrow(340,60,470,60,"ink",3)+T(405,50,"liikesuunta: itään",Object.assign({a:"middle",s:12,w:600},H)),hl);
+  }
+  if(step>=1)s+=hit("Lkeskus",`<circle class="zone" cx="${L[0]}" cy="${L[1]}" r="26" fill="#fff" stroke="#1c2a36" stroke-width="1.5"/><text x="${L[0]}" y="${L[1]+9}" font-size="26" font-weight="700" text-anchor="middle" fill="#1c2a36">L</text>`+T(L[0]+32,L[1]-14,"matalapaineen keskus",Object.assign({s:11.5},H)),hl);
+  s+=T(20,408,"Pohjoinen pallonpuolisko, katsottuna ylhäältä. Pohjoinen on ylhäällä.",{s:10.5,c:"#5b6b78",ax:true});
+  return s+"</svg>";
+};
+
+// --- Syklonin vaiheet (4 pientä)
+DG.vaiheet=(hl,o={})=>{
+  const H=o.labels!==false?{}:{hide:true};
+  let s=svgOpen(640,210);
+  const P=[["vaihe1","1 Rintama","kylmä ja lämmin ilma vastakkain"],["vaihe2","2 Aalto","lämmin ilma työntyy, paine laskee"],["vaihe3","3 Kypsä sykloni","rintamat, sektori, kierto"],["vaihe4","4 Okluusio","kylmä saa lämpimän kiinni"]];
+  P.forEach(([id,n,d],i)=>{const x=8+i*158,cx=x+77,cy=95;let g="";
+    g+=`<rect x="${x}" y="8" width="150" height="194" rx="8" fill="#f4f8fb" stroke="#c7d0d8"/>`;
+    g+=`<text x="${x+10}" y="30" font-size="10" fill="#2757a8">kylmä</text><text x="${x+8}" y="160" font-size="10" fill="#d1452b">lämmin</text>`;
+    if(i===0){g+=`<line x1="${x+15}" y1="${cy}" x2="${x+135}" y2="${cy}" stroke="#7b3fa0" stroke-width="3"/>`+arrow(x+110,cy-25,x+40,cy-25,"cold",1.6)+arrow(x+40,cy+25,x+110,cy+25,"warm",1.6);}
+    else if(i===1){g+=`<path d="M${x+15} ${cy+10} L${cx-25} ${cy+10} L${cx} ${cy-25} L${cx+25} ${cy+10} L${x+135} ${cy+10}" fill="none" stroke="#7b3fa0" stroke-width="3"/><path d="M${cx-25} ${cy+10} L${cx} ${cy-25}" stroke="#d1452b" stroke-width="3"/><path d="M${cx} ${cy-25} L${cx+25} ${cy+10}" stroke="#2757a8" stroke-width="3"/><circle cx="${cx}" cy="${cy-32}" r="9" fill="#fff" stroke="#1c2a36"/><text x="${cx}" y="${cy-28}" font-size="11" font-weight="700" text-anchor="middle">L</text>`+arrow(cx,cy+40,cx,cy+18,"warm",1.6);}
+    else if(i===2){g+=frontPath(cx,cy-30,cx+55,cy+45,"warm","#d1452b")+frontPath(cx,cy-30,cx-55,cy+50,"cold","#2757a8")+`<circle cx="${cx}" cy="${cy-30}" r="10" fill="#fff" stroke="#1c2a36"/><text x="${cx}" y="${cy-26}" font-size="12" font-weight="700" text-anchor="middle">L</text>`+`<path d="M${cx+30} ${cy-45} A34 34 0 0 0 ${cx-34} ${cy-30}" fill="none" stroke="#1c2a36" stroke-width="1.4" marker-end="url(#a-ink)"/>`;}
+    else{g+=`<line x1="${cx}" y1="${cy-30}" x2="${cx+12}" y2="${cy+25}" stroke="#7b3fa0" stroke-width="4"/>`+frontPath(cx+12,cy+25,cx+45,cy+55,"warm","#d1452b")+frontPath(cx+12,cy+25,cx-30,cy+58,"cold","#2757a8")+`<circle cx="${cx}" cy="${cy-30}" r="10" fill="#fff" stroke="#1c2a36"/><text x="${cx}" y="${cy-26}" font-size="12" font-weight="700" text-anchor="middle">L</text>`+`<text x="${cx-60}" y="${cy-5}" font-size="9" fill="#7b3fa0">okluusio-</text><text x="${cx-60}" y="${cy+6}" font-size="9" fill="#7b3fa0">rintama</text>`;}
+    g+=T(cx,170,n,Object.assign({a:"middle",s:12.5,w:600},H))+T(cx,186,d,Object.assign({a:"middle",s:9.5,c:"#5b6b78"},H));
+    s+=`<g class="hit${isHl(hl,id)?" hl":""}" data-item="${id}" tabindex="0" role="button" aria-label="${n}"><rect class="zone" x="${x}" y="8" width="150" height="194" rx="8" fill="transparent"/>${g}</g>`;});
+  return s+"</svg>";
+};
+const phaseNames={vaihe1:"Rintama",vaihe2:"Aalto",vaihe3:"Kypsä sykloni",vaihe4:"Okluusio"};
+
+// --- Ilmastodiagrammi. opts.upto = montako kuukautta piirretty (0–12), opts.labels=false piilottaa nimen ja tyypin, opts.hideTitle
+DG.diagrammi=(hl,o={})=>{
+  const st=o.station||stations[0];const upto=o.upto===undefined?12:o.upto;
+  const tmin=Math.min(0,Math.floor(Math.min(...st.t)/10)*10);const pmax=Math.max(...st.p);
+  const topU=pmax>100?50+(pmax-100)/10+5:50; // yksikkö = °C-ekvivalentti (1 °C = 2 mm alle 100 mm, sitten 1 °C = 10 mm)
+  const unit=Math.min(3.2,300/(topU-tmin));const x0=70,y0=40+ (topU-tmin)*unit,W=480,colW=W/12;
+  const Y=u=>y0-(u-tmin)*unit;const Yp=mm=>mm<=100?Y(mm/2):Y(50+(mm-100)/10);
+  const h=Math.round(y0+56);
+  let s=svgOpen(640,h);
+  s+=`<rect x="${x0}" y="${Y(topU)}" width="${W}" height="${y0-Y(topU)}" fill="#fff" stroke="#c7d0d8"/>`;
+  // grid & axes
+  for(let t=tmin;t<=Math.min(topU,50);t+=10){s+=`<line x1="${x0}" y1="${Y(t)}" x2="${x0+W}" y2="${Y(t)}" stroke="${t===0?"#5b6b78":"#eef1f4"}" stroke-width="${t===0?1.2:1}"/>`+T(x0-6,Y(t)+4,t,{a:"end",s:10.5,c:"#d1452b",ax:true})+T(x0+W+6,Y(t)+4,t*2,{s:10.5,c:"#2757a8",ax:true});}
+  if(topU>50)for(let mm=200;mm<=pmax+50;mm+=100){if(Yp(mm)<Y(topU))break;s+=`<line x1="${x0}" y1="${Yp(mm)}" x2="${x0+W}" y2="${Yp(mm)}" stroke="#eef1f4"/>`+T(x0+W+6,Yp(mm)+4,mm,{s:10.5,c:"#2757a8",ax:true});}
+  s+=T(x0-6,Y(topU)-8,"°C",{a:"end",s:10.5,c:"#d1452b",ax:true})+T(x0+W+6,Y(topU)-8,"mm",{s:10.5,c:"#2757a8",ax:true});
+  // dry season shading
+  let dry="";
+  st.t.forEach((t,i)=>{if(i<upto&&st.p[i]<2*t){const x=x0+i*colW;dry+=`<rect x="${x}" y="${Y(t)}" width="${colW}" height="${Math.max(0,Yp(st.p[i])-Y(t))}" fill="#f2b134" opacity=".35"/>`;}});
+  const anyDry=st.t.some((t,i)=>st.p[i]<2*t);
+  if(anyDry)s+=hit("kuivakausi",`<g class="zone">${dry}</g>`,hl);
+  // bars
+  let bars="";st.p.forEach((p,i)=>{if(i>=upto)return;const x=x0+i*colW+4;bars+=`<rect x="${x}" y="${Yp(p)}" width="${colW-8}" height="${y0-Yp(p)}" fill="${p>100?"#1f4f9c":"#7fb3d5"}" stroke="#2757a8" stroke-width=".8"/>`;});
+  s+=hit("sadepylvaat",`<g class="zone">${bars}</g>`,hl);
+  // month columns (hit areas for months)
+  st.t.forEach((t,i)=>{const x=x0+i*colW;s+=`<g class="hit" data-month="${i}" tabindex="0" role="button" aria-label="${MONF[i]}"><rect class="zone" x="${x}" y="${Y(topU)}" width="${colW}" height="${y0-Y(topU)}" fill="transparent" stroke="none"/></g>`+T(x+colW/2,y0+16,MON[i],{a:"middle",s:11,ax:true});});
+  // temp line
+  const pts=st.t.slice(0,upto).map((t,i)=>`${x0+i*colW+colW/2},${Y(t)}`).join(" ");
+  s+=hit("lampokayra",`<polyline class="zone" points="${pts}" fill="none" stroke="transparent" stroke-width="16"/><polyline points="${pts}" fill="none" stroke="#d1452b" stroke-width="2.5" pointer-events="none"/>${st.t.slice(0,upto).map((t,i)=>`<circle cx="${x0+i*colW+colW/2}" cy="${Y(t)}" r="3" fill="#d1452b" pointer-events="none"/>`).join("")}`,hl);
+  // title
+  const mean=(st.t.reduce((a,b)=>a+b,0)/12).toFixed(1).replace(".",",");const sum=st.p.reduce((a,b)=>a+b,0);
+  if(!o.hideTitle)s+=T(x0,24,`${st.name}  ${st.lat}, ${st.alt}`,{s:13,w:600,ax:true})+T(x0+W,24,`${mean} °C · ${sum} mm`,{a:"end",s:12,ax:true});
+  else s+=T(x0,24,"Tuntematon asema",{s:13,w:600,ax:true});
+  s+=T(x0,y0+34,"punainen käyrä = kuukauden keskilämpötila (vasen akseli) · siniset pylväät = sademäärä (oikea akseli, 1 °C = 2 mm)",{s:9.5,c:"#5b6b78",ax:true})+T(x0,y0+46,"keltainen = kuiva kausi: sadepylväs jää lämpökäyrän alle",{s:9.5,c:"#5b6b78",ax:true});
+  return s+"</svg>";
+};
+// ---------- kysymyspankki. lvl 1 = perus, 2 = keski, 3 = vaikea.
+// mc: a oikea, w väärät. sort: cats ja item, ans = indeksi. order: items oikeassa järjestyksessä. label: dg + target (klikattava kohde).
+const bank=[
+  // ===== maa: energia ja kehät
+  {t:"mc",th:"maa",lvl:1,q:"Mistä sisäsyntyinen energia tulee?",a:"Maan sisältä: ytimen ja vaipan lämmöstä",w:["Auringon säteilystä","Kuun vetovoimasta","Tuulesta ja sateesta"],why:"Sisäsyntyinen = endogeeninen = Maan sisäinen lämpö, jota tuottaa radioaktiivinen hajoaminen."},
+  {t:"mc",th:"maa",lvl:1,q:"Mistä ulkosyntyinen energia tulee?",a:"Auringon säteilystä",w:["Maan ytimestä","Tulivuorista","Maanjäristyksistä"],why:"Ulkosyntyinen = eksogeeninen = Maan ulkopuolelta, lähes kokonaan Auringosta."},
+  {t:"mc",th:"maa",lvl:2,q:"Kumpi energia rakentaa pinnanmuotoja ja kumpi tasoittaa niitä?",a:"Sisäsyntyinen rakentaa, ulkosyntyinen tasoittaa",w:["Ulkosyntyinen rakentaa, sisäsyntyinen tasoittaa","Molemmat rakentavat","Molemmat tasoittavat"],why:"Sisältä rakentuu (vuoret, tulivuoret), ulkoa kuluu (tuuli, sade, joet, jäätiköt)."},
+  {t:"sort",th:"maa",lvl:1,q:"Sisä- vai ulkosyntyisen energian ilmiö?",cats:["Sisäsyntyinen","Ulkosyntyinen"],items:[["tulivuorenpurkaus",0],["maanjäristys",0],["vuoriston poimuttuminen",0],["laattojen liike",0],["joen kuluttama laakso",1],["tuulen kasaama dyyni",1],["jäätikön hioma kallio",1],["sade ja rapautuminen",1],["aaltojen kuluttama ranta",1],["mannerten liikkuminen",0]],why:"Sisäsyntyinen: Maan sisältä, rakentaa. Ulkosyntyinen: Aurinko ja painovoima, kuluttaa ja kasaa."},
+  {t:"mc",th:"maa",lvl:1,q:"Mikä kehä on 'hydrosfääri'?",a:"Vesikehä",w:["Kivikehä","Ilmakehä","Elonkehä"],why:"Hydro = vesi. Meret, järvet, joet ja pohjavesi."},
+  {t:"mc",th:"maa",lvl:1,q:"Mikä kehä on 'litosfääri'?",a:"Kivikehä",w:["Vesikehä","Ilmakehä","Elonkehä"],why:"Litos = kivi. Maan kuori ja ylin vaippa, laatat."},
+  {t:"mc",th:"maa",lvl:2,q:"Mihin kehään kuuluvat jäätiköt, merijää ja ikirouta?",a:"Lumi- ja jääkehään (kryosfääri)",w:["Kivikehään","Elonkehään","Ilmakehään"],why:"Kryo = jää. Usein luetaan osaksi vesikehää, mutta erotetaan omaksi kehäkseen."},
+  {t:"mc",th:"maa",lvl:2,q:"Mikä on esimerkki kehien vuorovaikutuksesta?",a:"Tulivuori (kivikehä) syöttää kaasuja ilmakehään",w:["Kuu kiertää Maata","Aurinko säteilee valoa","Satelliitti kiertää Maata"],why:"Kehät vaikuttavat jatkuvasti toisiinsa: kivi, vesi, ilma ja elämä."},
+  {t:"label",th:"maa",lvl:1,dg:"maa",target:"ydin",q:"Klikkaa sisäsyntyisen energian lähdettä.",why:"Maan sisäinen lämpö on ytimessä ja vaipassa."},
+  {t:"label",th:"maa",lvl:1,dg:"maa",target:"aurinko",q:"Klikkaa ulkosyntyisen energian lähdettä.",why:"Aurinko käyttää tuulet, sateet ja veden kierron."},
+  {t:"label",th:"maa",lvl:2,dg:"maa",target:"elonkeha",q:"Klikkaa kehää, johon kaikki elollinen kuuluu.",why:"Elonkehä eli biosfääri."},
+
+  // ===== planeetta
+  {t:"mc",th:"planeetta",lvl:1,q:"Mitä maapallon pyöriminen akselinsa ympäri synnyttää?",a:"Vuorokauden: päivän ja yön",w:["Vuodenajat","Kääntöpiirit","Kuun vaiheet"],why:"Pyöriminen (24 h) vaihtaa aurinkoa kohti olevaa puolta. Vuodenajat tulevat kierrosta ja akselin kaltevuudesta."},
+  {t:"mc",th:"planeetta",lvl:1,q:"Mikä synnyttää vuodenajat?",a:"Akselin kaltevuus 23,5° ja kierto auringon ympäri",w:["Maan etäisyyden vaihtelu auringosta","Maan pyöriminen akselinsa ympäri","Kuun vetovoima"],why:"Kesällä oma pallonpuolisko on kallistunut aurinkoa kohti, jolloin säteily tulee jyrkemmin ja päivä on pitkä."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Mikä on Coriolis-ilmiö?",a:"Liikkuva ilma tai vesi kääntyy pyörimisen takia: pohjoisessa oikealle, etelässä vasemmalle",w:["Ilma virtaa korkeapaineesta matalapaineeseen","Meri lämpenee hitaammin kuin maa","Aurinko paistaa tropiikissa jyrkemmin"],why:"Coriolis johtuu pyörimisestä. Se kääntää pasaatit, länsituulet, merivirrat ja syklonit."},
+  {t:"mc",th:"planeetta",lvl:3,q:"Mihin suuntaan Coriolis-ilmiö kääntää liikettä pohjoisella pallonpuoliskolla?",a:"Oikealle",w:["Vasemmalle","Ei kumpaankaan","Aina pohjoiseen"],why:"Pohjoisessa oikealle, etelässä vasemmalle. Siksi pohjoisessa pasaati tulee koillisesta."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Miksi aikavyöhyke on 15° leveä?",a:"360° ÷ 24 h = 15° tunnissa",w:["Koska kääntöpiiri on 23,5°","Koska Maa on litistynyt","Koska vuodessa on 365 päivää"],why:"Maa pyörähtää 360° vuorokaudessa, joten yksi tunti vastaa 15 pituusastetta."},
+  {t:"mc",th:"planeetta",lvl:1,q:"Kuinka monta astetta akseli on kallellaan?",a:"23,5°",w:["66,5°","45°","0°"],why:"23,5° määrää kääntöpiirit, ja 90° − 23,5° = 66,5° napapiirit."},
+  {t:"mc",th:"planeetta",lvl:1,q:"Milloin on kesäpäivänseisaus?",a:"21.–22.6.",w:["20.–21.3.","22.–23.9.","21.–22.12."],why:"Kesäpäivänseisauksena aurinko on zeniitissä Kravun kääntöpiirillä ja pohjoisessa on vuoden pisin päivä."},
+  {t:"mc",th:"planeetta",lvl:1,q:"Milloin on talvipäivänseisaus?",a:"21.–22.12.",w:["21.–22.6.","20.–21.3.","22.–23.9."],why:"Aurinko zeniitissä Kauriin kääntöpiirillä, pohjoisessa vuoden lyhin päivä."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Mitä tapahtuu tasauspäivänä?",a:"Päivä ja yö ovat 12 tuntia kaikkialla, aurinko zeniitissä päiväntasaajalla",w:["Aurinko on zeniitissä Kravun kääntöpiirillä","Pohjoisessa on vuoden pisin päivä","Napapiirillä alkaa kaamos"],why:"Tasauspäivät 20.–21.3. ja 22.–23.9. Silloin kumpikaan pallonpuolisko ei ole kallellaan aurinkoa kohti."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Millä leveyspiirillä aurinko on zeniitissä 21.6.?",a:"Kravun kääntöpiirillä 23,5° N",w:["Päiväntasaajalla","Kauriin kääntöpiirillä 23,5° S","Pohjoisella napapiirillä"],why:"Kesäpäivänseisauksena pohjoinen napa on kallellaan aurinkoa kohti ja aurinko käy zeniitissä Kravun kääntöpiirillä."},
+  {t:"mc",th:"planeetta",lvl:3,q:"Millä leveyspiirillä aurinko on zeniitissä 21.12.?",a:"Kauriin kääntöpiirillä 23,5° S",w:["Kravun kääntöpiirillä 23,5° N","Päiväntasaajalla","Eteläisellä napapiirillä"],why:"Talvipäivänseisauksena eteläinen pallonpuolisko on kallellaan aurinkoa kohti."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Missä on yötön yö 21.6.?",a:"Pohjoisen napapiirin pohjoispuolella",w:["Kravun kääntöpiirin pohjoispuolella","Päiväntasaajalla","Eteläisen napapiirin eteläpuolella"],why:"Napapiiri 66,5° N on raja: sen pohjoispuolella aurinko ei laske kesäpäivänseisauksena. Etelänavalla on samaan aikaan kaamos."},
+  {t:"mc",th:"planeetta",lvl:1,q:"Mitkä leveyspiirit rajaavat tropiikin?",a:"Kravun ja Kauriin kääntöpiirit (23,5° N ja S)",w:["Napapiirit (66,5°)","Päiväntasaaja ja kääntöpiiri","Kääntöpiiri ja napapiiri"],why:"Tropiikki = kuuma vyöhyke kääntöpiirien välissä."},
+  {t:"mc",th:"planeetta",lvl:1,q:"Mitkä leveyspiirit rajaavat lauhkean vyöhykkeen?",a:"Kääntöpiiri (23,5°) ja napapiiri (66,5°)",w:["Päiväntasaaja ja kääntöpiiri","Napapiiri ja napa","Kravun ja Kauriin kääntöpiirit"],why:"Lauhkea vyöhyke on kääntöpiirin ja napapiirin välissä, molemmilla pallonpuoliskoilla."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Millä vyöhykkeellä aurinko käy zeniitissä vähintään kerran vuodessa?",a:"Tropiikissa",w:["Lauhkealla vyöhykkeellä","Kylmällä vyöhykkeellä","Kaikilla vyöhykkeillä"],why:"Zeniitti = suoraan yläpuolella. Mahdollista vain kääntöpiirien välissä."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Mikä kuvaa lauhkean vyöhykkeen valaistusta?",a:"Ei zeniittiä, ei yötöntä yötä eikä kaamosta; päivän pituus vaihtelee paljon",w:["Päivä on aina 12 tuntia","Kesällä yötön yö, talvella kaamos","Aurinko zeniitissä kahdesti vuodessa"],why:"Lauhkealla vyöhykkeellä on neljä vuodenaikaa, koska päivän pituus ja auringon korkeus vaihtelevat selvästi."},
+  {t:"mc",th:"planeetta",lvl:2,q:"Mikä kuvaa kylmän vyöhykkeen valaistusta?",a:"Kesällä yötön yö, talvella kaamos, aurinko aina matalalla",w:["Päivä on aina 12 tuntia","Aurinko zeniitissä kerran vuodessa","Neljä tasaista vuodenaikaa"],why:"Napapiirin ja navan välissä. Navoilla yötön yö ja kaamos kestävät puoli vuotta."},
+  {t:"mc",th:"planeetta",lvl:3,q:"Miksi tropiikissa on kuuma ympäri vuoden?",a:"Säteily tulee jyrkästi ja päivä on aina noin 12 h",w:["Se on lähempänä aurinkoa","Siellä ei ole tuulia","Ilmakehä on siellä ohuempi"],why:"Jyrkkä tulokulma keskittää energian pienelle alalle, eikä vuodenaikoja juuri ole."},
+  {t:"mc",th:"planeetta",lvl:3,q:"Miksi napapiiri on juuri 66,5°?",a:"90° − 23,5° = 66,5°: se seuraa akselin kaltevuudesta",w:["Se on sovittu kansainvälisesti","Se on Rovaniemen leveysaste","Se on puolet 133°:sta"],why:"Kaltevuus 23,5° määrää sekä kääntöpiirit (23,5°) että napapiirit (90° − 23,5°)."},
+  {t:"mc",th:"planeetta",lvl:3,q:"Mikä ilmiö EI johdu maapallon pyörimisestä?",a:"Vuodenajat",w:["Coriolis-ilmiö","Vuorokausi","Aikavyöhykkeet"],why:"Vuodenajat johtuvat kierrosta auringon ympäri ja akselin kaltevuudesta."},
+  {t:"order",th:"planeetta",lvl:2,q:"Järjestä vuoden tapahtumat tammikuusta alkaen.",items:["Kevätpäiväntasaus 20.–21.3.","Kesäpäivänseisaus 21.–22.6.","Syyspäiväntasaus 22.–23.9.","Talvipäivänseisaus 21.–22.12."],why:"Tasaus – seisaus – tasaus – seisaus, noin kolmen kuukauden välein."},
+  {t:"order",th:"planeetta",lvl:2,q:"Järjestä leveyspiirit päiväntasaajalta pohjoisnavalle.",items:["Päiväntasaaja 0°","Kravun kääntöpiiri 23,5° N","Pohjoinen napapiiri 66,5° N","Pohjoisnapa 90° N"],why:"0° – 23,5° – 66,5° – 90°. Kääntöpiiri rajaa tropiikin, napapiiri kylmän vyöhykkeen."},
+  {t:"label",th:"planeetta",lvl:1,dg:"valo",target:"kravun",q:"Klikkaa Kravun kääntöpiiriä.",why:"23,5° N, päiväntasaajan pohjoispuolella."},
+  {t:"label",th:"planeetta",lvl:1,dg:"valo",target:"kauriin",q:"Klikkaa Kauriin kääntöpiiriä.",why:"23,5° S, päiväntasaajan eteläpuolella."},
+  {t:"label",th:"planeetta",lvl:1,dg:"valo",target:"napapiiriN",q:"Klikkaa pohjoista napapiiriä.",why:"66,5° N. Sen pohjoispuolella on yötön yö ja kaamos."},
+  {t:"label",th:"planeetta",lvl:1,dg:"valo",target:"tropiikki",q:"Klikkaa tropiikkia.",why:"Kääntöpiirien välinen kuuma vyöhyke."},
+  {t:"label",th:"planeetta",lvl:2,dg:"valo",target:"lauhkeaN",q:"Klikkaa pohjoista lauhkeaa vyöhykettä.",why:"Kravun kääntöpiiristä pohjoiselle napapiirille."},
+  {t:"label",th:"planeetta",lvl:2,dg:"valo",target:"kylmaS",q:"Klikkaa eteläistä kylmää vyöhykettä.",why:"Eteläiseltä napapiiriltä etelänavalle: Etelämanner."},
+  {t:"label",th:"planeetta",lvl:2,dg:"valo",target:"paivantasaaja",q:"Klikkaa leveyspiiriä, jolla päivä ja yö ovat aina 12 tuntia.",why:"Päiväntasaaja."},
+  {t:"label",th:"planeetta",lvl:3,dg:"valo",target:"kravun",q:"Klikkaa leveyspiiriä, jolla aurinko on zeniitissä 21.6.",why:"Kravun kääntöpiiri 23,5° N."},
+  {t:"label",th:"planeetta",lvl:3,dg:"valo",target:"kylmaN",q:"Klikkaa vyöhykettä, jolla on kaamos joulukuussa.",why:"Pohjoinen kylmä vyöhyke napapiirin pohjoispuolella."},
+  {t:"label",th:"planeetta",lvl:1,dg:"vuosi",target:"kesa",q:"Klikkaa kesäpäivänseisausta.",why:"Pohjoinen napa on kallellaan aurinkoa kohti: 21.–22.6."},
+  {t:"label",th:"planeetta",lvl:2,dg:"vuosi",target:"talvi",q:"Klikkaa kohtaa, jossa pohjoisessa on vuoden lyhin päivä.",why:"Talvipäivänseisaus 21.–22.12.: pohjoinen napa poispäin auringosta."},
+  {t:"label",th:"planeetta",lvl:3,dg:"vuosi",target:"kevat",q:"Klikkaa kevätpäiväntasausta.",why:"20.–21.3.: aurinko zeniitissä päiväntasaajalla, kumpikaan napa ei ole kallellaan aurinkoa kohti."},
+
+  // ===== ilmakehä
+  {t:"mc",th:"ilmakeha",lvl:1,q:"Missä kerroksessa sää syntyy?",a:"Troposfäärissä",w:["Stratosfäärissä","Mesosfäärissä","Termosfäärissä"],why:"Alin kerros sisältää lähes kaiken vesihöyryn: pilvet, sade ja tuulet."},
+  {t:"mc",th:"ilmakeha",lvl:1,q:"Missä kerroksessa otsonikerros on?",a:"Stratosfäärissä",w:["Troposfäärissä","Mesosfäärissä","Termosfäärissä"],why:"Otsonikerros on 15–35 km korkeudessa stratosfäärissä."},
+  {t:"mc",th:"ilmakeha",lvl:1,q:"Missä kerroksessa meteorit palavat?",a:"Mesosfäärissä",w:["Troposfäärissä","Stratosfäärissä","Eksosfäärissä"],why:"Mesosfääri 50–85 km, ilmakehän kylmin kerros: tähdenlennot."},
+  {t:"mc",th:"ilmakeha",lvl:1,q:"Missä kerroksessa revontulet syntyvät?",a:"Termosfäärissä",w:["Troposfäärissä","Stratosfäärissä","Mesosfäärissä"],why:"Revontulet syntyvät 100–300 km korkeudessa termosfäärissä."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Miten lämpötila muuttuu troposfäärissä ylöspäin?",a:"Laskee, noin 6,5 °C kilometriä kohti",w:["Nousee","Pysyy samana","Laskee vain yöllä"],why:"Maanpinta lämmittää ilman alhaalta. Siksi vuorilla on kylmä."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Miksi lämpötila nousee stratosfäärissä?",a:"Otsoni imee auringon UV-säteilyä",w:["Maanpinta lämmittää sitä","Meteorit palavat siellä","Ilma on siellä tiheämpää"],why:"UV-säteilyn energia lämmittää otsonikerrosta."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Mihin kerrokseen ilmakehän jako perustuu?",a:"Lämpötilan muutokseen korkeuden mukaan",w:["Ilmanpaineeseen","Kaasujen määrään","Pilvien korkeuteen"],why:"Laskee – nousee – laskee – nousee. Rajat ovat 'paussit'."},
+  {t:"mc",th:"ilmakeha",lvl:3,q:"Miksi termosfäärin satojen asteiden lämpötilaa ei tuntisi?",a:"Ilma on niin harvaa, että molekyylejä on hyvin vähän",w:["Se on liian korkealla mitattavaksi","Siellä on aina pimeää","Revontulet viilentävät sitä"],why:"Lämpötila kuvaa molekyylien nopeutta, mutta lämpöä siirtyy vain, kun molekyylejä on paljon."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Missä kerroksessa matkustajakoneet lentävät?",a:"Troposfäärin yläosassa ja stratosfäärin alaosassa",w:["Mesosfäärissä","Termosfäärissä","Eksosfäärissä"],why:"Noin 10–12 km: tropopaussin tuntumassa, sään yläpuolella."},
+  {t:"mc",th:"ilmakeha",lvl:1,q:"Mikä on ilmakehän tärkein merkitys lämpötilalle?",a:"Kasvihuoneilmiö pitää keskilämpötilan +15 °C:ssa",w:["Se viilentää maapalloa −18 °C:een","Se estää auringon paistamasta","Se tekee yöt lämpimämmiksi kuin päivät"],why:"Ilman ilmakehää keskilämpötila olisi −18 °C. Vesihöyry ja hiilidioksidi pidättävät lämpöä."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Miltä ilmakehä suojaa maapalloa?",a:"UV-säteilyltä, kosmiselta säteilyltä ja meteoreilta",w:["Vain sateelta","Kuun vetovoimalta","Maanjäristyksiltä"],why:"Otsoni imee UV:n, meteorit palavat mesosfäärissä."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Mitkä ovat ilmakehän kaksi yleisintä kaasua?",a:"Typpi (78 %) ja happi (21 %)",w:["Happi ja hiilidioksidi","Typpi ja vesihöyry","Hiilidioksidi ja argon"],why:"Hiilidioksidia on vain 0,04 %, mutta se on tärkeä kasvihuonekaasu."},
+  {t:"mc",th:"ilmakeha",lvl:1,q:"Mitä otsonikerros tekee?",a:"Imee auringon haitallisen UV-säteilyn",w:["Pidättää lämpöä","Tuottaa happea","Synnyttää revontulet"],why:"Ilman otsonikerrosta UV aiheuttaisi ihosyöpää ja tuhoaisi kasviplanktonia."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Mikä on otsoni?",a:"Kolmiatominen happi O₃",w:["Kaksiatominen happi O₂","Hiilidioksidi CO₂","Typen yhdiste"],why:"Otsoni syntyy stratosfäärissä UV-säteilyn vaikutuksesta hapesta."},
+  {t:"mc",th:"ilmakeha",lvl:2,q:"Mikä ohensi otsonikerrosta?",a:"CFC-yhdisteet (freonit) kylmälaitteista ja suihkepulloista",w:["Hiilidioksidi autoista","Tulivuorten tuhka","Lentokoneiden melu"],why:"Montrealin pöytäkirja 1987 kielsi CFC:t, ja kerros elpyy hitaasti."},
+  {t:"mc",th:"ilmakeha",lvl:3,q:"Missä otsoniaukko on?",a:"Etelämantereen yllä, erityisesti keväällä",w:["Päiväntasaajan yllä","Saharan yllä","Suomen yllä kesällä"],why:"Etelämantereen kylmä talvi-ilma tehostaa CFC:iden otsonia hajottavaa vaikutusta keväällä."},
+  {t:"mc",th:"ilmakeha",lvl:3,q:"Miten otsonikato ja ilmastonmuutos liittyvät toisiinsa?",a:"Ne ovat eri ongelmia: otsonikato lisää UV-säteilyä, ilmastonmuutos lämmittää",w:["Otsoniaukko päästää lämmön karkuun avaruuteen","Ne ovat sama asia","Otsoniaukko aiheuttaa ilmastonmuutoksen"],why:"Yleinen sekaannus kokeessa. Otsoni = UV-suoja, kasvihuonekaasut = lämpö."},
+  {t:"mc",th:"ilmakeha",lvl:3,q:"Missä otsoni on haitallinen?",a:"Troposfäärissä, jossa se on savusumun saaste",w:["Stratosfäärissä","Mesosfäärissä","Se ei ole koskaan haitallinen"],why:"Sama kaasu: ylhäällä suoja, alhaalla hengitysteitä ärsyttävä saaste."},
+  {t:"order",th:"ilmakeha",lvl:1,q:"Järjestä ilmakehän kerrokset alhaalta ylös.",items:["Troposfääri","Stratosfääri","Mesosfääri","Termosfääri","Eksosfääri"],why:"Tropo – strato – meso – termo – ekso. Muistisääntö: 'Tässä Sataa Meillä Tänään Eniten'."},
+  {t:"order",th:"ilmakeha",lvl:3,q:"Järjestä lämpötilan muutokset alhaalta ylös.",items:["Laskee (troposfääri)","Nousee (stratosfääri)","Laskee (mesosfääri)","Nousee (termosfääri)"],why:"Laskee – nousee – laskee – nousee."},
+  {t:"label",th:"ilmakeha",lvl:1,dg:"ilmakeha",target:"tropo",q:"Klikkaa kerrosta, jossa pilvet ja sade ovat.",why:"Troposfääri, alin kerros."},
+  {t:"label",th:"ilmakeha",lvl:1,dg:"ilmakeha",target:"otsoni",q:"Klikkaa otsonikerrosta.",why:"Stratosfäärissä 15–35 km."},
+  {t:"label",th:"ilmakeha",lvl:2,dg:"ilmakeha",target:"meso",q:"Klikkaa ilmakehän kylmintä kerrosta.",why:"Mesosfääri, jopa −90 °C."},
+  {t:"label",th:"ilmakeha",lvl:2,dg:"ilmakeha",target:"termo",q:"Klikkaa kerrosta, jossa revontulet syntyvät.",why:"Termosfääri."},
+  {t:"label",th:"ilmakeha",lvl:3,dg:"ilmakeha",target:"strato",q:"Klikkaa kerrosta, jossa lämpötila nousee UV-säteilyn takia.",why:"Stratosfääri: otsoni imee UV:n."},
+  {t:"label",th:"ilmakeha",lvl:3,dg:"ilmakeha",target:"ekso",q:"Klikkaa uloimman kerroksen kohtaa.",why:"Eksosfääri, yli 500 km."},
+
+  // ===== tuulet
+  {t:"mc",th:"tuulet",lvl:1,q:"Mistä mihin tuuli puhaltaa?",a:"Korkeapaineesta matalapaineeseen",w:["Matalapaineesta korkeapaineeseen","Aina lännestä itään","Aina mereltä maalle"],why:"Ilma virtaa paine-eron tasoittamiseksi korkeasta matalaan."},
+  {t:"mc",th:"tuulet",lvl:1,q:"Mikä synnyttää paine-erot?",a:"Auringon epätasainen lämmitys: lämmin ilma kohoaa, kylmä laskeutuu",w:["Kuun vetovoima","Merivirrat","Maapallon pyöriminen yksin"],why:"Lämmin ilma laajenee ja kohoaa → matalapaine. Kylmä ilma tiivistyy ja laskeutuu → korkeapaine."},
+  {t:"mc",th:"tuulet",lvl:2,q:"Missä paine on matala?",a:"Siellä, missä lämmin ilma kohoaa",w:["Siellä, missä kylmä ilma laskeutuu","Aina navoilla","Aina merellä"],why:"Kohoava ilma keventää painetta pinnalla. Päiväntasaaja ja 60° ovat matalapaineen vyöhykkeitä."},
+  {t:"mc",th:"tuulet",lvl:2,q:"Milloin tuuli on kovaa?",a:"Kun paine-ero on suuri eli isobaarit ovat tiheässä",w:["Kun ilmanpaine on korkea","Kun on lämmintä","Kun isobaarit ovat harvassa"],why:"Suuri paine-ero lyhyellä matkalla = kova tuuli."},
+  {t:"mc",th:"tuulet",lvl:2,q:"Miksi merituuli puhaltaa päivällä mereltä maalle?",a:"Maa lämpenee nopeammin, ilma kohoaa ja maalle syntyy matalapaine",w:["Meri on päivällä lämpimämpi kuin maa","Aallot työntävät ilmaa","Coriolis-ilmiö vetää ilmaa maalle"],why:"Yöllä päinvastoin: maa jäähtyy nopeammin ja maatuuli puhaltaa merelle."},
+  {t:"mc",th:"tuulet",lvl:1,q:"Millainen paine on päiväntasaajalla?",a:"Matalapaine: lämmin kostea ilma kohoaa",w:["Korkeapaine: kylmä ilma laskeutuu","Vaihtelee joka päivä","Ei painetta lainkaan"],why:"Aurinko lämmittää eniten päiväntasaajaa. Kohoava ilma tuo päivittäisiä sateita."},
+  {t:"mc",th:"tuulet",lvl:1,q:"Millainen paine on kääntöpiirien seudulla (30°)?",a:"Korkeapaine: laskeva kuiva ilma",w:["Matalapaine: kohoava ilma","Sama kuin päiväntasaajalla","Polaaririntama"],why:"Päiväntasaajalta kohonnut ilma laskeutuu 30°:n kohdalla. Siksi siellä on aavikot."},
+  {t:"mc",th:"tuulet",lvl:2,q:"Millainen paine on 60° leveydellä?",a:"Matalapaine: polaaririntama, jossa lämmin ja kylmä ilma kohtaavat",w:["Korkeapaine","Pasaatituulten vyöhyke","Tyvenet"],why:"Lämmin ilma nousee kylmän päälle → syklonit. Islannin matalapaine tuo Suomeen sateet."},
+  {t:"mc",th:"tuulet",lvl:1,q:"Mitkä tuulet puhaltavat kääntöpiireiltä päiväntasaajalle?",a:"Pasaatituulet",w:["Länsituulet","Polaariset itätuulet","Monsuunit"],why:"Koillispasaati pohjoisessa, kaakkoispasaati etelässä."},
+  {t:"mc",th:"tuulet",lvl:1,q:"Millä tuulivyöhykkeellä Suomi on?",a:"Länsituulten vyöhykkeellä (30°–60°)",w:["Pasaatituulten vyöhykkeellä","Polaaristen itätuulten vyöhykkeellä","Tyvenillä"],why:"Länsituulet tuovat Suomeen Atlantin lämmön ja syklonit."},
+  {t:"mc",th:"tuulet",lvl:2,q:"Miksi pohjoisen pasaati tulee koillisesta eikä pohjoisesta?",a:"Coriolis-ilmiö kääntää tuulen oikealle",w:["Mantereet kääntävät sen","Aurinko lämmittää idästä","Pasaati tulee pohjoisesta"],why:"Ilma lähtee 30°:lta etelään, ja Coriolis kääntää liikkeen oikealle → koillisesta."},
+  {t:"mc",th:"tuulet",lvl:3,q:"Mistä suunnasta eteläisen pallonpuoliskon pasaati puhaltaa?",a:"Kaakosta",w:["Koillisesta","Luoteesta","Lounaasta"],why:"Etelässä Coriolis kääntää vasemmalle: etelästä lähtevä ilma kääntyy kaakkoistuuleksi."},
+  {t:"mc",th:"tuulet",lvl:3,q:"Mitkä tuulet puhaltavat navoilta 60° leveydelle?",a:"Polaariset itätuulet",w:["Länsituulet","Pasaatit","Monsuunit"],why:"Navan korkeapaineesta polaaririntaman matalapaineeseen, Coriolis kääntää idästä tuleviksi."},
+  {t:"mc",th:"tuulet",lvl:3,q:"Mikä on Hadleyn solu?",a:"Kiertosolu päiväntasaajan (kohoaa) ja 30°:n (laskeutuu) välillä",w:["Kiertosolu 30°–60°","Kiertosolu 60°–90°","Merivirtojen kehä"],why:"Hadley 0–30°, Ferrel 30–60°, polaarisolu 60–90°."},
+  {t:"mc",th:"tuulet",lvl:3,q:"Miksi kääntöpiirien korkeapaine tuo kuivuutta?",a:"Laskeva ilma lämpenee, eikä kosteus tiivisty",w:["Siellä ei ole merta","Pasaatit vievät sateet pois","Ilma on siellä liian kylmää"],why:"Sadetta syntyy vain kohoavasta ilmasta. Laskeva ilma kuivuu → Sahara, Arabia, Australia."},
+  {t:"mc",th:"tuulet",lvl:3,q:"Miten painevyöhykkeet liikkuvat vuoden aikana?",a:"Ne siirtyvät auringon mukana: kesällä pohjoisemmaksi",w:["Ne pysyvät täsmälleen paikallaan","Ne vaihtavat paikkaa keskenään","Ne katoavat talvella"],why:"Siksi Välimerellä on kesällä kuivaa (30° korkeapaine siirtyy pohjoiseen) ja Sahelissa sadekausi."},
+  {t:"order",th:"tuulet",lvl:2,q:"Järjestä painevyöhykkeet päiväntasaajalta pohjoisnavalle.",items:["Päiväntasaajan matalapaine (0°)","Kääntöpiirin korkeapaine (30°)","Polaaririntaman matalapaine (60°)","Navan korkeapaine (90°)"],why:"L – H – L – H. Matala, jossa ilma kohoaa; korkea, jossa se laskeutuu."},
+  {t:"order",th:"tuulet",lvl:3,q:"Järjestä tuulen synnyn vaiheet.",items:["Aurinko lämmittää pintaa epätasaisesti","Lämmin ilma kohoaa → matalapaine, kylmä laskeutuu → korkeapaine","Ilma virtaa korkeapaineesta matalapaineeseen","Coriolis kääntää tuulen suuntaa"],why:"Lämpötilaero → paine-ero → tuuli → Coriolis kääntää."},
+  {t:"label",th:"tuulet",lvl:1,dg:"tuulet",target:"L0",q:"Klikkaa päiväntasaajan matalapainetta.",why:"0°, jossa lämmin ilma kohoaa."},
+  {t:"label",th:"tuulet",lvl:1,dg:"tuulet",target:"H30N",q:"Klikkaa pohjoisen kääntöpiirin korkeapainetta.",why:"30° N, Saharan seutu."},
+  {t:"label",th:"tuulet",lvl:1,dg:"tuulet",target:"lansiN",q:"Klikkaa länsituulia pohjoisella pallonpuoliskolla.",why:"30° → 60° N, Suomi kuuluu tähän."},
+  {t:"label",th:"tuulet",lvl:2,dg:"tuulet",target:"pasaatiN",q:"Klikkaa koillispasaatia.",why:"30° N → päiväntasaaja."},
+  {t:"label",th:"tuulet",lvl:2,dg:"tuulet",target:"L60N",q:"Klikkaa vyöhykettä, jossa syklonit syntyvät.",why:"Polaaririntaman matalapaine 60° N."},
+  {t:"label",th:"tuulet",lvl:3,dg:"tuulet",target:"pasaatiS",q:"Klikkaa kaakkoispasaatia.",why:"30° S → päiväntasaaja, kääntyy etelässä vasemmalle."},
+  {t:"label",th:"tuulet",lvl:3,dg:"tuulet",target:"itaN",q:"Klikkaa polaarisia itätuulia pohjoisessa.",why:"Navalta 60°:lle."},
+  {t:"label",th:"tuulet",lvl:3,dg:"tuulet",target:"H30S",q:"Klikkaa vyöhykettä, jossa Kalaharin ja Australian aavikot ovat.",why:"Eteläinen kääntöpiirin korkeapaine 30° S."},
+
+  // ===== vesi ja sade
+  {t:"order",th:"vesi",lvl:1,q:"Järjestä hydrologisen kierron vaiheet haihtumisesta alkaen.",items:["Haihtuminen merestä","Vesihöyry kohoaa ja tiivistyy pilviksi","Sadanta","Pintavalunta ja imeytyminen","Joet ja pohjavesi palauttavat veden mereen"],why:"Haihtuu – tiivistyy – sataa – valuu – palaa mereen. Auringon energia pyörittää."},
+  {t:"mc",th:"vesi",lvl:1,q:"Mikä käyttää hydrologista kiertoa?",a:"Auringon energia",w:["Kuun vetovoima","Maan sisäinen lämpö","Tuulivoimalat"],why:"Aurinko haihduttaa veden; painovoima tuo sen takaisin alas."},
+  {t:"mc",th:"vesi",lvl:2,q:"Mitä on transpiraatio?",a:"Kasvien haihduttama vesi",w:["Veden imeytyminen maahan","Pilvien muodostuminen","Pohjaveden virtaus"],why:"Haihtuminen + transpiraatio = evapotranspiraatio. Sademetsä tekee osan omista sateistaan."},
+  {t:"mc",th:"vesi",lvl:2,q:"Mitä sadevedelle tapahtuu maan pinnalla?",a:"Osa valuu pintavaluntana jokiin, osa imeytyy pohjavedeksi",w:["Kaikki haihtuu heti","Kaikki imeytyy","Kaikki valuu mereen"],why:"Jakosuhde riippuu maalajista, kaltevuudesta ja sateen rankkuudesta."},
+  {t:"mc",th:"vesi",lvl:3,q:"Miksi veden määrä maapallolla ei muutu?",a:"Vesi vain kiertää muodosta toiseen: höyry, pisarat, jää, pohjavesi",w:["Meret tekevät uutta vettä","Sade tuo vettä avaruudesta","Vesi häviää haihtuessaan"],why:"Sama vesi on kiertänyt miljardeja vuosia."},
+  {t:"label",th:"vesi",lvl:1,dg:"vesi",target:"haihtuminen",q:"Klikkaa haihtumista.",why:"Merestä ylös vesihöyrynä."},
+  {t:"label",th:"vesi",lvl:1,dg:"vesi",target:"sadanta",q:"Klikkaa sadantaa.",why:"Pilvestä alas vetenä tai lumena."},
+  {t:"label",th:"vesi",lvl:2,dg:"vesi",target:"pohjavesi",q:"Klikkaa pohjavettä.",why:"Maan alla, virtaa hitaasti mereen."},
+  {t:"label",th:"vesi",lvl:2,dg:"vesi",target:"tiivistyminen",q:"Klikkaa kohtaa, jossa vesihöyry tiivistyy.",why:"Pilvessä, kun kohoava ilma jäähtyy."},
+  {t:"label",th:"vesi",lvl:3,dg:"vesi",target:"imeytyminen",q:"Klikkaa imeytymistä.",why:"Sadevesi imeytyy maaperään pohjavedeksi."},
+  {t:"label",th:"vesi",lvl:3,dg:"vesi",target:"transpiraatio",q:"Klikkaa kasvien haihduntaa.",why:"Lehdistä ylös."},
+  {t:"mc",th:"vesi",lvl:1,q:"Mikä on yhteistä kaikille sadetyypeille?",a:"Kostea ilma kohoaa, jäähtyy ja vesihöyry tiivistyy",w:["Ilma laskeutuu ja lämpenee","Sataa vain merellä","Tarvitaan vuori"],why:"Sadetyypit eroavat vain siinä, mikä nostaa ilman: vuori, rintama vai kuuma maa."},
+  {t:"mc",th:"vesi",lvl:1,q:"Mikä nostaa ilman orografisessa sateessa?",a:"Vuori pakottaa tuulen nousemaan rinnettä",w:["Kylmä ilmamassa","Auringon kuumentama maa","Matalapaineen keskus"],why:"Oro = vuori. Tuulenpuoleinen rinne sateinen, suojan puoli kuiva."},
+  {t:"mc",th:"vesi",lvl:1,q:"Mikä nostaa ilman konvektiosateessa?",a:"Auringon kuumentama maa lämmittää ilman, joka kohoaa nopeasti",w:["Vuori","Lämmin ja kylmä ilmamassa kohtaavat","Merivirta"],why:"Konvektio = pystysuora kohoaminen. Syntyy kuuropilvi ja ukkonen."},
+  {t:"mc",th:"vesi",lvl:1,q:"Mikä nostaa ilman rintamasateessa?",a:"Lämmin ilma nousee kylmän ilmamassan päälle",w:["Vuori","Kuuma maa","Tuuli mereltä"],why:"Kevyempi lämmin ilma liukuu raskaamman kylmän päälle."},
+  {t:"mc",th:"vesi",lvl:2,q:"Mikä on sadevarjo?",a:"Vuoren suojan puoli, jossa laskeva ilma on kuivaa",w:["Pilvi, joka estää sateen","Sateenvarjo","Vuoren tuulenpuoleinen rinne"],why:"Esim. Andien itäpuoli Patagoniassa ja Tiibet Himalajan takana."},
+  {t:"mc",th:"vesi",lvl:2,q:"Millainen on rintamasade?",a:"Laaja-alainen, tasainen ja pitkäkestoinen",w:["Rankka, lyhyt ja paikallinen","Vain vuoristossa","Aina ukkosta"],why:"Lämmin ilma nousee loivasti, joten pilvet ovat laajoja ja sade kestää tunteja."},
+  {t:"mc",th:"vesi",lvl:2,q:"Millainen on konvektiosade?",a:"Rankka, lyhyt ja paikallinen, usein ukkonen",w:["Laaja ja tasainen","Vain talvella","Tihkusadetta"],why:"Nopea kohoaminen tekee korkean kuuropilven (cumulonimbus)."},
+  {t:"mc",th:"vesi",lvl:2,q:"Missä konvektiosade on yleistä?",a:"Tropiikissa lähes päivittäin ja lauhkealla vyöhykkeellä kesällä",w:["Vain navoilla","Vain vuoristossa","Vain talvella"],why:"Tarvitaan kuuma maanpinta: tropiikin iltapäivät, Suomen kesäukkoset."},
+  {t:"mc",th:"vesi",lvl:2,q:"Missä rintamasade on yleistä?",a:"Lauhkealla vyöhykkeellä sykloneissa, esim. Suomessa syksyllä ja talvella",w:["Päiväntasaajalla","Saharassa","Vain vuoristossa"],why:"Polaaririntamalla lämmin ja kylmä ilma kohtaavat, ja syklonit tuovat rintamasateet."},
+  {t:"mc",th:"vesi",lvl:2,q:"Missä orografinen sade on yleistä?",a:"Vuoristojen tuulenpuoleisilla rinteillä: Norja, Himalaja, Andit",w:["Tasangoilla","Merellä","Aavikoilla"],why:"Tuulen on tultava mereltä ja kohdattava vuori."},
+  {t:"mc",th:"vesi",lvl:3,q:"Miksi Norjan länsirannikolla sataa yli 2000 mm vuodessa?",a:"Länsituulet tuovat kosteaa ilmaa Atlantilta ja vuoret nostavat sen: orografinen sade",w:["Se on päiväntasaajalla","Siellä on konvektiosateita joka päivä","Kylmä merivirta viilentää ilman"],why:"Länsituulet + lämmin Pohjois-Atlantin virta + Skandien vuoristo."},
+  {t:"sort",th:"vesi",lvl:2,q:"Mikä sadetyyppi?",cats:["Orografinen","Rintamasade","Konvektiosade"],items:[["Suomen kesäinen ukkoskuuro",2],["Tasaista sadetta koko syyspäivän Helsingissä",1],["Sadetta Norjan rannikon vuorten länsirinteillä",0],["Amazonian iltapäiväsade joka päivä",2],["Himalajan etelärinteiden monsuunisateet",0],["Syklonin lämpimän rintaman sade",1],["Kuuropilvi kuuman aavikon reunalla",2],["Lämmin ilma nousee kylmän päälle ja sataa laajalti",1]],why:"Vuori → orografinen. Ilmamassojen raja → rintama. Kuuma maa → konvektio."},
+  {t:"mc",th:"vesi",lvl:1,q:"Missä ovat maapallon sateisimmat alueet?",a:"Päiväntasaajan seudulla",w:["Kääntöpiirien seudulla","Navoilla","Mantereiden sisäosissa"],why:"Kuuma kostea ilma kohoaa päivittäin: Amazonia, Kongo, Indonesia."},
+  {t:"mc",th:"vesi",lvl:1,q:"Missä ovat maapallon suurimmat aavikot?",a:"Kääntöpiirien seudulla noin 20–30° leveydellä",w:["Päiväntasaajalla","Napapiirillä","Länsituulten vyöhykkeellä"],why:"Subtrooppinen korkeapaine: Sahara, Arabia, Kalahari, Australia."},
+  {t:"mc",th:"vesi",lvl:2,q:"Miksi päiväntasaajalla sataa paljon?",a:"Kuuma kostea ilma kohoaa ja tiivistyy: matalapaine ja konvektiosateet",w:["Kylmä ilma laskeutuu siellä","Pasaatit vievät kosteuden sinne mereltä pois","Siellä on paljon vuoria"],why:"Pasaatit tuovat kosteutta, aurinko nostaa ilman, sataa lähes joka päivä."},
+  {t:"mc",th:"vesi",lvl:2,q:"Miksi Sahara on kuiva?",a:"Kääntöpiirin korkeapaine: laskeva ilma lämpenee eikä tiivisty",w:["Se on liian kaukana auringosta","Siellä puhaltaa länsituulia","Kylmä merivirta viilentää sitä"],why:"30° N: Hadleyn solun laskeva haara."},
+  {t:"mc",th:"vesi",lvl:3,q:"Miksi Atacaman aavikko Chilessä on maailman kuivin?",a:"Kylmä Humboldtin virta viilentää ilman, joka ei kohoa; lisäksi Andit tekevät sadevarjon",w:["Se on kääntöpiirin korkeapaineen ulkopuolella","Siellä on lämmin merivirta","Siellä ei ole tuulia"],why:"Kylmä virta + sadevarjo + korkeapaine: sumuinen mutta lähes sateeton."},
+  {t:"mc",th:"vesi",lvl:3,q:"Miksi napa-alueilla sataa vähän?",a:"Kylmä ilma sisältää hyvin vähän kosteutta ja laskeutuu",w:["Siellä ei ole merta","Aurinko haihduttaa kaiken","Pasaatit vievät kosteuden pois"],why:"Etelämanner on kylmä aavikko: alle 200 mm vuodessa."},
+  {t:"mc",th:"vesi",lvl:3,q:"Miksi Keski-Aasian sisäosat (Gobi) ovat kuivia?",a:"Kaukana merestä ja vuoristojen sadevarjossa",w:["Ne ovat kääntöpiirillä","Kylmä merivirta","Ne ovat liian korkealla"],why:"Mantereisuus + Himalajan ja Tianshanin sadevarjo."},
+  {t:"mc",th:"vesi",lvl:2,q:"Missä on maailman sateisin paikka?",a:"Himalajan juurella Intiassa (monsuunisateet)",w:["Amazonian keskellä","Norjan rannikolla","Indonesiassa"],why:"Mawsynram ja Cherrapunji: kesämonsuuni törmää vuoriin. Yli 11 000 mm vuodessa."},
+  {t:"sort",th:"vesi",lvl:1,q:"Sateinen vai kuiva alue?",cats:["Sateinen","Kuiva"],items:[["Amazonia",0],["Sahara",1],["Norjan länsirannikko",0],["Atacama",1],["Kongon allas",0],["Etelämanner",1],["Bangladesh (monsuuni)",0],["Arabian niemimaa",1],["Gobi",1],["Indonesia",0]],why:"Sateiset: päiväntasaaja, monsuuni, vuorten tuulenpuoli. Kuivat: 30°, kylmät virrat, sadevarjot, navat."},
+  {t:"mc",th:"vesi",lvl:1,q:"Mikä on tärkein merivirtojen syy?",a:"Vallitsevat tuulet (pasaatit ja länsituulet) työntävät pintavettä",w:["Kuun vetovoima","Jokien virtaus","Tulivuoret merenpohjassa"],why:"Lisäksi Coriolis kääntää virrat kehiksi, mantereet ohjaavat ja tiheyserot ajavat syviä virtoja."},
+  {t:"mc",th:"vesi",lvl:2,q:"Mitä lämmin merivirta tekee rannikon ilmastolle?",a:"Lämmittää ja kosteuttaa, lisää sateita",w:["Viilentää ja kuivattaa","Ei vaikuta","Aiheuttaa aavikon"],why:"Golfvirta ja Pohjois-Atlantin virta pitävät Norjan satamat sulina."},
+  {t:"mc",th:"vesi",lvl:2,q:"Mitä kylmä merivirta tekee rannikon ilmastolle?",a:"Viilentää; ilma ei kohoa, joten sataa vähän ja on sumua",w:["Lämmittää ja lisää sateita","Tuo ukkosia","Ei vaikuta"],why:"Humboldt → Atacama, Benguela → Namib. Kylmät virrat ovat kuitenkin hyviä kalavesiä."},
+  {t:"mc",th:"vesi",lvl:3,q:"Mihin suuntaan merivirtakehät kiertävät pohjoisella pallonpuoliskolla?",a:"Myötäpäivään (Coriolis kääntää oikealle)",w:["Vastapäivään","Suoraan pohjoiseen","Ei säännönmukaisesti"],why:"Etelässä vastapäivään. Kehän länsireunalla lämmin virta pohjoiseen, itäreunalla kylmä virta etelään."},
+  {t:"mc",th:"vesi",lvl:3,q:"Miksi Suomessa on leudompaa kuin Grönlannissa samalla leveydellä?",a:"Lämmin Pohjois-Atlantin virta ja länsituulet tuovat lämpöä",w:["Suomi on lähempänä päiväntasaajaa","Suomessa on enemmän metsää","Grönlannissa on korkeampi ilmanpaine"],why:"Golfvirran jatke lämmittää Pohjois-Euroopan ilmaa, jonka länsituulet kuljettavat maalle."},
+  {t:"sort",th:"vesi",lvl:2,q:"Lämmin vai kylmä merivirta?",cats:["Lämmin","Kylmä"],items:[["Golfvirta",0],["Humboldtin virta",1],["Benguelan virta",1],["Kuroshio",0],["Pohjois-Atlantin virta",0],["Kanarianvirta",1],["Labradorinvirta",1],["Brasilianvirta",0]],why:"Lämpimät kulkevat päiväntasaajalta napoja kohti, kylmät navoilta päiväntasaajaa kohti."},
+  {t:"label",th:"vesi",lvl:1,dg:"sade",target:"orografinen",q:"Klikkaa orografista sadetta.",why:"Vuori nostaa tuulen."},
+  {t:"label",th:"vesi",lvl:1,dg:"sade",target:"konvektio",q:"Klikkaa konvektiosadetta.",why:"Kuuma maa, nopea kohoaminen, kuuropilvi."},
+  {t:"label",th:"vesi",lvl:2,dg:"sade",target:"rintamasade",q:"Klikkaa sadetyyppiä, joka on yleisin Suomessa syksyllä.",why:"Rintamasade sykloneissa."},
+  {t:"label",th:"vesi",lvl:3,dg:"sade",target:"orografinen",q:"Klikkaa sadetyyppiä, johon liittyy sadevarjo.",why:"Orografinen: vuoren suojan puoli on kuiva."},
+
+  // ===== ilmasto
+  {t:"mc",th:"ilmasto",lvl:1,q:"Mikä on tärkein ilmastoon vaikuttava tekijä?",a:"Leveysaste: säteilyn tulokulma ja päivän pituus",w:["Maaperän väri","Kaupunkien määrä","Kuun vaiheet"],why:"Leveysaste määrää valaistusvyöhykkeen. Muut tekijät muokkaavat sitä."},
+  {t:"mc",th:"ilmasto",lvl:1,q:"Miten korkeus merenpinnasta vaikuttaa lämpötilaan?",a:"Lämpötila laskee noin 6,5 °C kilometriä kohti",w:["Lämpötila nousee ylöspäin","Ei vaikuta","Laskee vain talvella"],why:"Siksi Kilimanjarolla on lunta päiväntasaajan lähellä."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mitä meren läheisyys tekee ilmastolle?",a:"Tasaa lämpötilaa: viileät kesät, leudot talvet, pieni vuosivaihtelu",w:["Kärjistää: kuumat kesät ja kylmät talvet","Tekee ilmastosta kuivan","Ei vaikuta"],why:"Merellinen ilmasto. Mantereisessa ilmastossa vuosivaihtelu on suuri, koska maa lämpenee ja jäähtyy nopeasti."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mikä ilmastovyöhyke Suomessa on?",a:"Kylmä eli boreaalinen (lumimetsäilmasto)",w:["Lauhkea merellinen","Polaarinen tundra","Välimeren ilmasto"],why:"Pitkä lumitalvi ja lyhyt lämmin kesä. Vain Lapin tunturit ovat tundraa."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mikä kuvaa välimeren ilmastoa?",a:"Kuiva kuuma kesä ja sateinen leuto talvi",w:["Sateinen kesä ja kuiva talvi","Sadetta tasaisesti ympäri vuoden","Aina alle 0 °C"],why:"Kesällä 30° korkeapaine siirtyy pohjoiseen, talvella länsituulet tuovat syklonit."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mikä kuvaa savanni-ilmastoa?",a:"Kuuma ympäri vuoden, sadekausi kesällä ja kuiva kausi talvella",w:["Sadetta joka kuukausi yli 100 mm","Kylmä talvi","Alle 250 mm vuodessa"],why:"Päiväntasaajan matalapaine tuo kesäsateet, kääntöpiirin korkeapaine talven kuivuuden."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mikä kuvaa sademetsäilmastoa?",a:"Joka kuukausi yli 18 °C ja sadetta paljon ympäri vuoden",w:["Kuiva kausi talvella","Kylmä talvi, kuuma kesä","Sadetta vain kesällä"],why:"Päiväntasaajan seutu: konvektiosateita päivittäin, ei vuodenaikoja."},
+  {t:"mc",th:"ilmasto",lvl:3,q:"Milloin ilmasto on kuiva (aavikko tai aro)?",a:"Kun haihdunta on suurempi kuin sadanta",w:["Kun sataa alle 1000 mm","Kun on aina kuuma","Kun on kylmä"],why:"Aavikolla alle 250 mm. Myös kylmä alue voi olla aavikko."},
+  {t:"mc",th:"ilmasto",lvl:3,q:"Mikä erottaa tundran ja jäätikköilmaston?",a:"Tundralla lämpimin kuukausi on 0–10 °C, jäätiköllä aina alle 0 °C",w:["Tundralla sataa enemmän","Jäätiköllä kasvaa metsää","Ne ovat sama asia"],why:"Polaarisen vyöhykkeen kaksi tyyppiä."},
+  {t:"mc",th:"ilmasto",lvl:3,q:"Miksi lumi viilentää ilmastoa?",a:"Lumi heijastaa säteilyn takaisin (suuri albedo)",w:["Lumi on kylmää","Lumi imee lämmön","Lumi estää tuulen"],why:"Tumma maa ja meri imevät säteilyä, vaalea lumi heijastaa sen."},
+  {t:"sort",th:"ilmasto",lvl:2,q:"Merellinen vai mantereinen ilmasto?",cats:["Merellinen","Mantereinen"],items:[["pieni lämpötilan vuosivaihtelu",0],["kuumat kesät ja hyvin kylmät talvet",1],["Bergen, Norja",0],["Jakutsk, Siperia",1],["sadetta tasaisesti ympäri vuoden",0],["vähän sadetta, kaukana merestä",1],["leudot talvet",0],["suuri lämpötilan vuosivaihtelu",1]],why:"Meri tasaa, manner kärjistää."},
+  {t:"order",th:"ilmasto",lvl:2,q:"Järjestä ilmastovyöhykkeet päiväntasaajalta navalle.",items:["Kuuma (trooppinen)","Kuiva (aavikko, 30°)","Lauhkea","Kylmä (boreaalinen)","Polaarinen (tundra, jäätikkö)"],why:"Vyöhykkeet seuraavat leveysastetta, mutta meri, virrat ja vuoret muokkaavat rajoja."},
+  // syklonit
+  {t:"mc",th:"ilmasto",lvl:1,q:"Missä syklonit syntyvät?",a:"Polaaririntamalla (n. 60°), jossa lämmin ja kylmä ilma kohtaavat",w:["Päiväntasaajalla","Kääntöpiirin korkeapaineessa","Navoilla"],why:"Lämmin trooppinen ja kylmä polaarinen ilma kohtaavat ja rintamaan syntyy aalto."},
+  {t:"mc",th:"ilmasto",lvl:1,q:"Mihin suuntaan sykloni liikkuu Suomen kohdalla?",a:"Länneltä itään länsituulten mukana",w:["Idästä länteen","Etelästä pohjoiseen","Se ei liiku"],why:"Siksi sää tulee Suomeen yleensä lännestä."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Miten ilma kiertää syklonin keskusta pohjoisella pallonpuoliskolla?",a:"Vastapäivään ja sisäänpäin",w:["Myötäpäivään ja ulospäin","Suoraan keskustaan","Suoraan ylös"],why:"Coriolis kääntää sisään virtaavan ilman oikealle → vastapäivään. Korkeapaineessa päinvastoin."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Kumpi rintama on syklonin edessä (idässä)?",a:"Lämmin rintama",w:["Kylmä rintama","Okluusiorintama","Ei kumpikaan"],why:"Lämmin rintama edellä, kylmä rintama perässä, lämmin sektori välissä."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Millainen sää on lämpimän rintaman edellä?",a:"Pilvet paksuuntuvat vähitellen ja seuraa pitkä tasainen sade",w:["Kuuroja ja ukkosta","Kirkasta ja kylmää","Tyyntä ja aurinkoista"],why:"Lämmin ilma liukuu loivasti kylmän päälle: ensin cirrus, sitten nimbostratus."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Millainen sää on kylmän rintaman kohdalla?",a:"Kuurosateita, ukkosta, tuuli kääntyy ja voimistuu, sitten kirkastuu ja viilenee",w:["Pitkä tasainen sade","Lämpenee ja tyyntyy","Ei muutosta"],why:"Kylmä ilma työntyy jyrkästi lämpimän alle ja nostaa sen nopeasti."},
+  {t:"mc",th:"ilmasto",lvl:3,q:"Mitä on okluusio?",a:"Kylmä rintama saa lämpimän rintaman kiinni ja lämmin ilma nostetaan kokonaan ylös",w:["Syklonin syntyminen","Lämmin sektori laajenee","Sykloni kääntyy takaisin länteen"],why:"Kylmä rintama liikkuu nopeammin. Okluusion jälkeen sykloni täyttyy ja hajoaa."},
+  {t:"mc",th:"ilmasto",lvl:3,q:"Miten lämmin rintama merkitään säkarttaan?",a:"Punainen viiva, jossa puoliympyrät liikesuuntaan",w:["Sininen viiva, jossa kolmiot","Violetti viiva","Vihreä katkoviiva"],why:"Kylmä rintama on sininen ja kolmiot. Okluusio on violetti, jossa molemmat merkit."},
+  {t:"order",th:"ilmasto",lvl:1,q:"Järjestä syklonin vaiheet.",items:["Rintama: ilmamassat liikkuvat vastakkain","Aalto: lämmin ilma työntyy kylmään, paine laskee","Kypsä sykloni: lämmin ja kylmä rintama, lämmin sektori","Okluusio: kylmä rintama saa lämpimän kiinni","Sykloni täyttyy ja hajoaa"],why:"Rintama – aalto – kypsä – okluusio – hajoaminen. Koko elinkaari kestää muutaman päivän."},
+  {t:"order",th:"ilmasto",lvl:3,q:"Järjestä sää, kun sykloni ohittaa Suomen.",items:["Korkeat cirruspilvet, pilvet paksuuntuvat","Lämpimän rintaman tasainen sade","Lämmin sektori: lämpenee, sade tauolla","Kylmä rintama: kuurot ja ukkonen, tuuli kääntyy","Kirkastuu ja viilenee"],why:"Lämmin rintama tulee ensin, kylmä perässä."},
+  {t:"order",th:"ilmasto",lvl:2,q:"Järjestä syklonin piirtämisen vaiheet.",items:["Piirrä matalapaineen keskus L","Piirrä lämmin rintama keskuksesta kaakkoon (punainen, puoliympyrät)","Piirrä kylmä rintama keskuksesta lounaaseen (sininen, kolmiot)","Merkitse lämmin sektori rintamien väliin ja kylmä ilma ympärille","Piirrä kiertonuolet vastapäivään ja liikesuunta itään"],why:"Näin sykloni piirretään kokeessa. Tarkista: merkit osoittavat liikesuuntaan."},
+  {t:"label",th:"ilmasto",lvl:1,dg:"sykloni",target:"lamminR",q:"Klikkaa lämmintä rintamaa.",why:"Punainen viiva ja puoliympyrät, keskuksesta kaakkoon."},
+  {t:"label",th:"ilmasto",lvl:1,dg:"sykloni",target:"kylmaR",q:"Klikkaa kylmää rintamaa.",why:"Sininen viiva ja kolmiot, keskuksesta lounaaseen."},
+  {t:"label",th:"ilmasto",lvl:2,dg:"sykloni",target:"sektori",q:"Klikkaa lämmintä sektoria.",why:"Rintamien välissä keskuksen eteläpuolella."},
+  {t:"label",th:"ilmasto",lvl:2,dg:"sykloni",target:"Lkeskus",q:"Klikkaa kohtaa, jossa ilmanpaine on alin.",why:"Matalapaineen keskus L."},
+  {t:"label",th:"ilmasto",lvl:3,dg:"sykloni",target:"lamminR",q:"Klikkaa rintamaa, jonka edellä sataa pitkään ja tasaisesti.",why:"Lämmin rintama."},
+  {t:"label",th:"ilmasto",lvl:3,dg:"sykloni",target:"kylmaR",q:"Klikkaa rintamaa, joka tuo kuurot ja ukkosen.",why:"Kylmä rintama."},
+  {t:"label",th:"ilmasto",lvl:3,dg:"sykloni",target:"liike",q:"Klikkaa syklonin liikesuuntaa.",why:"Itään, länsituulten mukana."},
+  {t:"label",th:"ilmasto",lvl:1,dg:"vaiheet",target:"vaihe3",q:"Klikkaa kypsää syklonia.",why:"Vaihe 3: molemmat rintamat, lämmin sektori ja kierto."},
+  {t:"label",th:"ilmasto",lvl:2,dg:"vaiheet",target:"vaihe2",q:"Klikkaa vaihetta, jossa rintamaan syntyy aalto.",why:"Vaihe 2: lämmin ilma työntyy kylmään ja paine laskee."},
+  {t:"label",th:"ilmasto",lvl:3,dg:"vaiheet",target:"vaihe4",q:"Klikkaa vaihetta, jossa kylmä rintama on saanut lämpimän kiinni.",why:"Vaihe 4: okluusio."},
+  // ilmastodiagrammi
+  {t:"mc",th:"ilmasto",lvl:1,q:"Mitä ilmastodiagrammin punainen käyrä esittää?",a:"Kuukausien keskilämpötiloja (vasen akseli, °C)",w:["Sademäärää","Tuulen nopeutta","Päivän pituutta"],why:"Pylväät ovat sade, käyrä lämpötila."},
+  {t:"mc",th:"ilmasto",lvl:1,q:"Mitä siniset pylväät esittävät?",a:"Kuukausien sademääriä (oikea akseli, mm)",w:["Lämpötilaa","Ilmanpainetta","Lumen syvyyttä"],why:"Pylväiden summa on vuosisademäärä."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mikä on lämpö- ja sadeasteikon suhde ilmastodiagrammissa?",a:"1 °C = 2 mm (10 °C samalla korkeudella kuin 20 mm)",w:["1 °C = 1 mm","1 °C = 10 mm","Ei säännönmukaista suhdetta"],why:"Tällä suhteella sadepylvään jääminen käyrän alle tarkoittaa kuivaa kautta."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mitä tarkoittaa, että sadepylväs jää lämpökäyrän alle?",a:"Kuiva kausi: haihdunta on sadetta suurempi",w:["Sadekausi","Talvi","Mittausvirhe"],why:"Kasvit kärsivät kuivuudesta. Välimeren ilmastossa kesällä, savannilla talvella."},
+  {t:"mc",th:"ilmasto",lvl:1,q:"Miten diagrammista näkee eteläisen pallonpuoliskon?",a:"Lämpimin kuukausi on joulu–helmikuussa",w:["Lämpimin kuukausi on kesä–elokuussa","Sataa paljon","Pylväät ovat sinisiä"],why:"Etelässä vuodenajat ovat päinvastoin."},
+  {t:"mc",th:"ilmasto",lvl:2,q:"Mitä suuri lämpötilan vuosivaihtelu kertoo?",a:"Mantereisesta ilmastosta kaukana merestä",w:["Merellisestä ilmastosta","Trooppisesta ilmastosta","Vuoristosta"],why:"Vuosivaihtelu = lämpimin − kylmin kuukausi. Jakutskissa lähes 60 °C, Bergenissä 13 °C."},
+  {t:"mc",th:"ilmasto",lvl:3,q:"Mitä diagrammin otsikkoon merkitään?",a:"Paikka, korkeus, vuoden keskilämpötila ja vuosisademäärä",w:["Vain paikan nimi","Tuulen suunta","Lumen syvyys"],why:"Vuoden keskilämpötila = 12 kuukauden keskiarvo, vuosisademäärä = pylväiden summa."},
+  {t:"order",th:"ilmasto",lvl:2,q:"Järjestä ilmastodiagrammin tulkinnan vaiheet.",items:["Pallonpuolisko: milloin on lämpimintä?","Lämpötila: keskilämpötila ja vuosivaihtelu","Sade: määrä ja jakautuminen, kuiva kausi","Ilmastotyyppi ja vyöhyke","Syyt: leveysaste, meri, virrat, tuulet, vuoret"],why:"Tällä järjestyksellä vastaus on täydellinen kokeessa."},
+  {t:"mc",th:"ilmasto",lvl:3,st:"lima",q:"Miksi tämä asema (Lima, 12° S) on lähes sateeton, vaikka se on tropiikissa?",a:"Kylmä Humboldtin virta viilentää ilman, joka ei kohoa",w:["Se on kääntöpiirin korkeapaineessa","Se on sadevarjossa Andien takana päiväntasaajalta tulevalta tuulelta","Siellä on lämmin merivirta"],why:"Kylmä virta + laskeva ilma: sumuinen rannikkoaavikko."},
+  {t:"mc",th:"ilmasto",lvl:3,st:"bergen",q:"Miksi tällä asemalla (Bergen, 60° N) on leuto talvi ja yli 2000 mm sadetta?",a:"Lämmin Pohjois-Atlantin virta, länsituulet ja vuorten orografinen sade",w:["Se on tropiikissa","Kylmä merivirta ja mantereisuus","Konvektiosateet joka päivä"],why:"Helsinki on samalla leveydellä, mutta talvi on kylmempi ja sadetta kolmasosa."},
+  {t:"mc",th:"ilmasto",lvl:3,st:"mumbai",q:"Miksi tällä asemalla (Mumbai, 19° N) lähes kaikki sade tulee kesä–syyskuussa?",a:"Kesämonsuuni puhaltaa mereltä kosteaa ilmaa, talvimonsuuni mantereelta kuivaa",w:["Länsituulet tuovat syklonit kesällä","Kylmä merivirta","Kesällä on konvektiosateita, talvella orografisia"],why:"Monsuuni = vuodenajan mukaan suuntaa vaihtava tuuli."},
+  {t:"mc",th:"ilmasto",lvl:3,st:"jakutsk",q:"Miksi tällä asemalla (Jakutsk, 62° N) vuosivaihtelu on lähes 60 °C?",a:"Äärimmäinen mantereisuus: kaukana merestä Siperian sisäosassa",w:["Se on napapiirin pohjoispuolella","Lämmin merivirta lämmittää kesällä","Vuoristoilmasto"],why:"Maa lämpenee ja jäähtyy nopeasti. Talvella kylmä korkeapaine."},
+];
+bank.forEach((q,i)=>q.key="q"+i);
+// ---------- tila
+const stage=document.getElementById("stage");
+let mode="explore";
+const ex={th:"maa",dg:"maa",item:null,step:5,st:0,upto:12,phase:null};
+const flow={level:null,theme:"all",queue:[],asked:0,right:0,streak:0,best:0,missed:new Map(),left:0,busy:false,q:null,done:true,adv:null,timer:null,limit:0,count:0};
+let oq=null; // järjestämiskysymyksen tila
+const support={calm:false,speak:false,big:false,minutes:10,showKnown:true};
+const known=new Set(),streaks=new Map();
+const shuffle=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(v=>v[1]);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const strip=h=>h.replace(/<[^>]+>/g,"");
+function speak(txt,force){if(!(force||support.speak)||!("speechSynthesis" in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(strip(txt));u.lang="fi-FI";u.rate=.95;speechSynthesis.speak(u);}catch(e){}}
+const listenBtn=txt=>("speechSynthesis" in window)?`<button class="listen" data-say="${strip(txt).replace(/"/g,"&quot;")}" type="button" aria-label="Kuuntele">🔊</button>`:"";
+function markKnown(key,ok){const n=ok?(streaks.get(key)||0)+1:0;streaks.set(key,n);if(n>=3)known.add(key);}
+const cheers={ok:["Oikein.","Hyvä.","Juuri niin.","Osuma.","Kyllä."],no:["Läheltä. Tämä tulee kohta uudestaan.","Ei vielä. Katso kaaviota, tämä palaa pian.","Melkein. Palataan tähän."],streak:{3:"Kolme putkeen.",5:"Viisi putkeen. Hyvä rytmi.",8:"Kahdeksan putkeen.",12:"Kaksitoista putkeen. Tämä on hallussa."}};
+
+// ---------- tilat
+function setMode(m){
+  mode=m;oq=null;
+  document.getElementById("m-explore").setAttribute("aria-pressed",m==="explore");document.getElementById("m-flow").setAttribute("aria-pressed",m==="flow");
+  if(flow.timer){clearInterval(flow.timer);flow.timer=null}if(flow.adv){clearTimeout(flow.adv);flow.adv=null}flow.done=true;
+  if(m==="explore")renderExplore();else chooseLevel();
+  window.scrollTo({top:0});
+}
+["explore","flow"].forEach(k=>document.getElementById("m-"+k).addEventListener("click",()=>setMode(k)));
+
+// ---------- Tutki
+const phaseInfo={vaihe1:"<b>1. Rintama.</b> Polaaririntamalla kylmä polaarinen ilma (pohjoisessa) ja lämmin trooppinen ilma (etelässä) liikkuvat vastakkaisiin suuntiin suoraa rintamaa pitkin.",vaihe2:"<b>2. Aalto.</b> Rintamaan syntyy aalto: lämmin ilma työntyy kylmään, ilma kohoaa ja paine laskee. Aallon kärkeen syntyy matalapaineen keskus L.",vaihe3:"<b>3. Kypsä sykloni.</b> Keskuksen edessä lämmin rintama, takana kylmä rintama, välissä lämmin sektori. Ilma kiertää keskusta vastapäivään ja sykloni liikkuu itään.",vaihe4:"<b>4. Okluusio.</b> Nopeampi kylmä rintama saa lämpimän kiinni ja nostaa lämpimän ilman kokonaan ylös: okluusiorintama. Sen jälkeen paine-ero tasoittuu ja sykloni hajoaa."};
+function drawDiagram(dg,hl,o={}){
+  if(dg==="sykloni")return DG.sykloni(hl,Object.assign({step:ex.step},o));
+  if(dg==="diagrammi")return DG.diagrammi(hl,Object.assign({station:stations[ex.st],upto:ex.upto},o));
+  return DG[dg](hl,o);
+}
+function renderExplore(){
+  const th=themes.find(t=>t.id===ex.th);const dgs=dgOfTheme[ex.th];if(!dgs.includes(ex.dg))ex.dg=dgs[0];
+  const tabs=`<div class="tabs" role="tablist" aria-label="Teema">${themes.map(t=>`<button role="tab" data-th="${t.id}" aria-pressed="${t.id===ex.th}"><span class="n">${t.qs[0]}${t.qs.length>1?"–"+t.qs[t.qs.length-1]:""}</span>${t.short}</button>`).join("")}</div>`;
+  const dgTabs=dgs.length>1?`<div class="tabs" aria-label="Kaavio">${dgs.map(d=>`<button data-dg="${d}" aria-pressed="${d===ex.dg}">${dgName[d]}</button>`).join("")}</div>`:"";
+  let ctrl="";
+  if(ex.dg==="sykloni")ctrl=`<div class="ctrl"><span class="muted" style="font-size:13.5px">Piirrä vaihe vaiheelta:</span>${[1,2,3,4,5].map(n=>`<button data-step="${n}" ${n===ex.step?'style="background:#1f6f8b;color:#fff;border-color:#1f6f8b"':""}>${n}</button>`).join("")}</div>`;
+  if(ex.dg==="diagrammi")ctrl=`<div class="ctrl"><select id="st-sel" aria-label="Asema">${stations.map((s,i)=>`<option value="${i}"${i===ex.st?" selected":""}>${s.name} (${s.lat})</option>`).join("")}</select><button id="st-prev" aria-label="Edellinen">‹</button><button id="st-next" aria-label="Seuraava">›</button><button id="draw-step">Piirrä kuukausi kerrallaan</button>${ex.upto<12?`<button id="draw-all">Näytä kaikki</button>`:""}</div>`;
+  const list=itemIds.filter(id=>items[id].dg===ex.dg&&!(id==="kuivakausi"&&!stations[ex.st].t.some((t,i)=>stations[ex.st].p[i]<2*t)));
+  const itemBtns=list.length?`<div class="items">${list.map(id=>`<button data-item="${id}" aria-pressed="${ex.item===id}"${support.showKnown&&itemKnown(id)?' class="known"':""}>${items[id].name}${support.showKnown&&itemKnown(id)?" ✓":""}</button>`).join("")}</div>`:"";
+  const cardsHtml=cards.filter(c=>c.th===ex.th).map(c=>`<details class="card" data-n="${c.n}" ${c.dg===ex.dg&&c.n===th.qs[0]?"":""}><summary><span class="q">${c.n}.</span>${c.q}</summary><div class="body">${c.html}<p class="muted" style="font-size:12.5px">${c.dg!==ex.dg?`Kaavio: ${dgName[c.dg]}. `:""}Avaa kortti, niin kaavio korostaa vastauksen kohteet.</p></div></details>`).join("");
+  stage.innerHTML=`<h2>Tutki kaavioita</h2><p>Valitse teema ja klikkaa kaavion kohteita. Kysymysten vastaukset ovat kaavion alla.</p>${tabs}${dgTabs}${ctrl}<div class="diagram" id="dg">${drawDiagram(ex.dg,ex.item)}</div>${itemBtns}<div class="explain" id="explain"></div><h3 style="margin-top:14px">${th.name}: kysymykset ${th.qs.join(", ")}</h3>${cardsHtml}`;
+  renderExplain();
+  stage.querySelectorAll("[data-th]").forEach(b=>b.onclick=()=>{ex.th=b.dataset.th;ex.dg=dgOfTheme[ex.th][0];ex.item=null;ex.phase=null;renderExplore();});
+  stage.querySelectorAll("[data-dg]").forEach(b=>b.onclick=()=>{ex.dg=b.dataset.dg;ex.item=null;ex.phase=null;renderExplore();});
+  stage.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>{ex.step=+b.dataset.step;renderExplore();});
+  const sel=document.getElementById("st-sel");if(sel){sel.onchange=e=>{ex.st=+e.target.value;ex.upto=12;renderExplore();};document.getElementById("st-prev").onclick=()=>{ex.st=(ex.st-1+stations.length)%stations.length;ex.upto=12;renderExplore();};document.getElementById("st-next").onclick=()=>{ex.st=(ex.st+1)%stations.length;ex.upto=12;renderExplore();};
+    document.getElementById("draw-step").onclick=()=>{ex.upto=ex.upto>=12?1:ex.upto+1;renderExplore();};const da=document.getElementById("draw-all");if(da)da.onclick=()=>{ex.upto=12;renderExplore();};}
+  stage.querySelectorAll(".items [data-item]").forEach(b=>b.onclick=()=>selectItem(b.dataset.item));
+  document.getElementById("dg").onclick=e=>{const h=e.target.closest(".hit");if(!h)return;if(h.dataset.item){if(items[h.dataset.item])selectItem(h.dataset.item);else if(phaseInfo[h.dataset.item]){ex.phase=h.dataset.item;ex.item=null;renderExplore();}}else if(h.dataset.month!==undefined){ex.item="m"+h.dataset.month;renderExplain();}};
+  document.getElementById("dg").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){const h=e.target.closest(".hit");if(h){e.preventDefault();h.click();}}};
+  stage.querySelectorAll("details.card").forEach(d=>d.addEventListener("toggle",()=>{if(d.open){const c=cards.find(x=>x.n===+d.dataset.n);if(c.dg!==ex.dg){ex.dg=c.dg;ex.item=null;renderExplore();const nd=stage.querySelector(`details.card[data-n="${c.n}"]`);if(nd){nd.open=true;nd.scrollIntoView({block:"nearest"});}return;}document.getElementById("dg").innerHTML=drawDiagram(ex.dg,c.hl);}}));
+}
+function itemKnown(id){const ks=bank.filter(q=>q.t==="label"&&q.target===id).map(q=>q.key);return ks.length>0&&ks.every(k=>known.has(k));}
+function selectItem(id){ex.item=id;ex.phase=null;document.getElementById("dg").innerHTML=drawDiagram(ex.dg,id);stage.querySelectorAll(".items [data-item]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.item===id));renderExplain();const el=document.getElementById("dg").querySelector(`.hit[data-item="${id}"]`);if(el)el.classList.add("pulse");}
+function renderExplain(){
+  const el=document.getElementById("explain");if(!el)return;
+  if(ex.phase){el.innerHTML=`<p>${phaseInfo[ex.phase]}</p>`;speak(phaseInfo[ex.phase]);return;}
+  if(ex.dg==="diagrammi"){const st=stations[ex.st];let m="";
+    if(ex.item&&ex.item[0]==="m"&&!items[ex.item]){const i=+ex.item.slice(1);m=`<p><b>${MONF[i].charAt(0).toUpperCase()+MONF[i].slice(1)}:</b> keskilämpötila ${String(st.t[i]).replace(".",",")} °C, sademäärä ${st.p[i]} mm. ${st.p[i]<2*st.t[i]?"Pylväs jää käyrän alle → kuiva kuukausi.":"Pylväs ylittää käyrän → kostea kuukausi."}</p>`;}
+    else if(items[ex.item]){const it=items[ex.item];m=`<h3>${it.name}${listenBtn(it.name+". "+it.why)}</h3><p class="where">${it.where}</p><p>${it.why}</p>`;}
+    const mean=(st.t.reduce((a,b)=>a+b,0)/12).toFixed(1).replace(".",",");const sum=st.p.reduce((a,b)=>a+b,0);const amp=(Math.max(...st.t)-Math.min(...st.t)).toFixed(1).replace(".",",");const wi=st.t.indexOf(Math.max(...st.t));const dryM=st.t.map((t,i)=>st.p[i]<2*t?MONF[i].slice(0,3):null).filter(Boolean);
+    el.innerHTML=m+`<h4>${st.name} (${st.lat}, ${st.alt})</h4><div class="kv"><b>Pallonpuolisko</b><span>${st.hemi==="N"?"pohjoinen":"eteläinen"} (lämpimin kuukausi ${MONF[wi]})</span><b>Vuoden keskilämpötila</b><span>${mean} °C</span><b>Vuosivaihtelu</b><span>${amp} °C (${+amp.replace(",",".")>30?"suuri: mantereinen":+amp.replace(",",".")<15?"pieni: merellinen tai trooppinen":"kohtalainen"})</span><b>Vuosisademäärä</b><span>${sum} mm</span><b>Kuiva kausi</b><span>${dryM.length===0?"ei ole":dryM.length>=11?"koko vuosi":dryM.join(", ")}</span><b>Ilmastotyyppi</b><span>${st.type}</span></div><p>${st.why}</p>${ex.upto<12?`<p class="tip">Piirretty ${ex.upto} kuukautta. Lämpötila merkitään pisteenä vasemman akselin mukaan, sade pylväänä oikean akselin mukaan (1 °C = 2 mm).</p>`:""}<table class="tbl"><tr><th></th>${MON.map(m=>`<th>${m}</th>`).join("")}</tr><tr><td>°C</td>${st.t.map(t=>`<td>${String(t).replace(".",",")}</td>`).join("")}</tr><tr><td>mm</td>${st.p.map(p=>`<td>${p}</td>`).join("")}</tr></table>`;
+    return;}
+  const it=items[ex.item];
+  if(!it){el.innerHTML=`<p class="muted">Klikkaa kaavion kohdetta tai nimeä, niin näet mitä se on, missä se on ja miksi sillä on väliä.</p>`;return;}
+  el.innerHTML=`<h3>${it.name}${listenBtn(it.name+". "+it.where+". "+it.why)}</h3><p class="where">${it.where}</p><span class="group">${it.group}</span><p>${it.why}</p>`;
+  speak(it.name+". "+it.why);
+}
+
+// ---------- Harjoittele: tasot
+const levels={
+  perus:{name:"Perus: tunnista",desc:"Missä mikin on ja mitä se tarkoittaa. Kolme vaihtoehtoa, kaavioissa nimet näkyvissä.",max:1,opts:3,labels:true,hint:true},
+  keski:{name:"Keski: yhdistä",desc:"Mukana järjestäminen ja ilmastodiagrammit. Neljä vaihtoehtoa, kaavioissa sijaintivihje.",max:2,opts:4,labels:false,hint:true},
+  vaikea:{name:"Vaikea: selitä",desc:"Kaikki sekaisin, myös miksi-kysymykset. Ei vihjeitä.",max:3,opts:4,labels:false,hint:false},
+};
+const cfg=()=>levels[flow.level];
+function chooseLevel(){
+  const total=bank.length,k=known.size;
+  stage.innerHTML=`<h2>Harjoittele</h2><p>Sekalaisia kysymyksiä ${support.minutes} minuuttia. Väärin mennyt palaa pian uudestaan.</p>
+  <div class="opts">${Object.entries(levels).map(([k,L])=>`<button class="big" data-level="${k}">${L.name}<small>${L.desc}</small></button>`).join("")}</div>
+  <div class="ctrl" style="margin-top:12px"><label for="th-sel" class="muted" style="font-size:14px">Teema:</label><select id="th-sel"><option value="all"${flow.theme==="all"?" selected":""}>Kaikki teemat</option>${themes.map(t=>`<option value="${t.id}"${flow.theme===t.id?" selected":""}>${t.name} (kys. ${t.qs.join(", ")})</option>`).join("")}</select></div>
+  <p class="muted" style="font-size:13px">Yhden teeman sessio on 15 kysymystä ilman ajastinta.${k?` Kolmesti oikein osattuja kysymyksiä: ${k} / ${total}.`:""}</p>
+  <details class="support"><summary>Tuki ja asetukset</summary>
+    <label><input type="checkbox" id="s-calm"${support.calm?" checked":""}>Rauhallinen tila: ei automaattista siirtymää, virhe heti uudestaan, luvut vasta lopussa</label>
+    <label><input type="checkbox" id="s-big"${support.big?" checked":""}>Isompi teksti</label>
+    <label><input type="checkbox" id="s-speak"${support.speak?" checked":""}>Lue kysymykset ja selitykset ääneen</label>
+    <label><input type="checkbox" id="s-known"${support.showKnown?" checked":""}>Näytä kolmesti osatut kohteet vihreinä Tutki-tilassa</label>
+    <label>Session pituus<select id="s-min">${[3,5,10,15].map(m=>`<option value="${m}"${support.minutes===m?" selected":""}>${m} min</option>`).join("")}</select></label>
+  </details>`;
+  stage.querySelectorAll("[data-level]").forEach(b=>b.onclick=()=>startFlow(b.dataset.level));
+  document.getElementById("th-sel").onchange=e=>{flow.theme=e.target.value;};
+  document.getElementById("s-calm").onchange=e=>support.calm=e.target.checked;
+  document.getElementById("s-big").onchange=e=>{support.big=e.target.checked;document.body.classList.toggle("big",support.big);};
+  document.getElementById("s-speak").onchange=e=>support.speak=e.target.checked;
+  document.getElementById("s-known").onchange=e=>support.showKnown=e.target.checked;
+  document.getElementById("s-min").onchange=e=>{support.minutes=+e.target.value;chooseLevel();};
+}
+// ilmastodiagrammikysymykset generoidaan asemista
+function climateQs(max){
+  const qs=[];
+  stations.forEach(st=>{
+    const wi=st.t.indexOf(Math.max(...st.t)),ci=st.t.indexOf(Math.min(...st.t));
+    const dry=st.t.map((t,i)=>st.p[i]<2*t);const nd=dry.filter(Boolean).length;
+    qs.push({t:"clim",sub:"hemi",lvl:1,st,q:"Kummalla pallonpuoliskolla tämä asema on?",a:st.hemi==="N"?"Pohjoisella":"Eteläisellä",w:[st.hemi==="N"?"Eteläisellä":"Pohjoisella"],why:`Lämpimin kuukausi on ${MONF[wi]}, joten kesä on ${st.hemi==="N"?"kesä–elokuussa: pohjoinen":"joulu–helmikuussa: eteläinen"} pallonpuolisko.`});
+    qs.push({t:"clim",sub:"month",lvl:1,st,q:"Klikkaa lämpimintä kuukautta.",month:i=>st.t[i]===st.t[wi],why:`Lämpimin on ${MONF[wi]}, ${String(st.t[wi]).replace(".",",")} °C. Lue punaisen käyrän huippu.`});
+    const pm=Math.max(...st.p),pmin=Math.min(...st.p);
+    qs.push({t:"clim",sub:"month",lvl:1,st,q:"Klikkaa sateisinta kuukautta.",month:i=>st.p[i]===pm,why:`Korkein pylväs: ${MONF[st.p.indexOf(pm)]}, ${pm} mm.`});
+    if(pm!==pmin)qs.push({t:"clim",sub:"month",lvl:2,st,q:"Klikkaa kuivinta kuukautta.",month:i=>st.p[i]===pmin,why:`Matalin pylväs: ${MONF[st.p.indexOf(pmin)]}, ${pmin} mm.`});
+    let dryA,dryW;
+    if(nd===0){dryA="Ei kuivaa kautta";dryW="Sadepylväät ylittävät lämpökäyrän joka kuukausi.";}
+    else if(nd>=11){dryA="Lähes koko vuosi on kuiva";dryW="Pylväät jäävät käyrän alle lähes joka kuukausi: aavikko.";}
+    else{const summer=st.hemi==="N"?[4,5,6,7,8]:[10,11,0,1,2];const ds=dry.map((d,i)=>d&&summer.includes(i)).filter(Boolean).length;dryA=ds>nd/2?"Kuiva kausi on kesällä":"Kuiva kausi on talvella";dryW=`Pylväät jäävät käyrän alle kuukausina ${dry.map((d,i)=>d?MONF[i].slice(0,3):null).filter(Boolean).join(", ")}.`;}
+    qs.push({t:"clim",sub:"dry",lvl:2,st,q:"Milloin tällä asemalla on kuiva kausi?",a:dryA,w:["Ei kuivaa kautta","Kuiva kausi on kesällä","Kuiva kausi on talvella","Lähes koko vuosi on kuiva"].filter(x=>x!==dryA),why:dryW+" Kuiva kausi = pylväs jää lämpökäyrän alle (1 °C = 2 mm)."});
+    qs.push({t:"clim",sub:"type",lvl:2,st,q:"Mikä ilmastotyyppi tämä on?",a:st.type,w:shuffle(climTypes.filter(x=>x!==st.type)).slice(0,3),why:st.why});
+    const amp=Math.max(...st.t)-Math.min(...st.t);
+    if(amp>30||amp<15&&!["singapore","lima","kairo","mumbai","bamako"].includes(st.id))qs.push({t:"clim",sub:"cont",lvl:2,st,q:"Onko ilmasto merellinen vai mantereinen?",a:amp>30?"Mantereinen":"Merellinen",w:[amp>30?"Merellinen":"Mantereinen"],why:`Vuosivaihtelu on ${amp.toFixed(0)} °C: ${amp>30?"suuri, eli kaukana meren tasaavasta vaikutuksesta":"pieni, eli meri tasaa lämpötilaa"}.`});
+  });
+  return shuffle(qs).slice(0,max);
+}
+function buildQueue(){
+  const L=cfg();
+  let qs=bank.filter(q=>q.lvl<=L.max&&(flow.theme==="all"||q.th===flow.theme));
+  if(L.max>=2&&(flow.theme==="all"||flow.theme==="ilmasto"))qs=qs.concat(climateQs(flow.theme==="all"?10:14).filter(q=>q.lvl<=L.max).map(q=>Object.assign({th:"ilmasto",key:"c:"+q.st.id+":"+q.sub+":"+q.q},q)));
+  else if(L.max===1&&(flow.theme==="all"||flow.theme==="ilmasto"))qs=qs.concat(climateQs(flow.theme==="all"?5:8).filter(q=>q.lvl===1).map(q=>Object.assign({th:"ilmasto",key:"c:"+q.st.id+":"+q.sub+":"+q.q},q)));
+  // vähemmän tunnettuja ensin, osatut harvemmin
+  const fresh=qs.filter(q=>!known.has(q.key)),old=qs.filter(q=>known.has(q.key));
+  return shuffle(fresh).concat(shuffle(old));
+}
+function startFlow(level){
+  flow.level=level;flow.queue=buildQueue();flow.asked=0;flow.right=0;flow.streak=0;flow.best=0;flow.missed=new Map();flow.busy=false;flow.done=false;flow.q=null;flow.count=0;
+  flow.timed=flow.theme==="all";flow.limit=flow.timed?support.minutes*60:15;flow.left=flow.limit;
+  if(flow.timer)clearInterval(flow.timer);
+  if(flow.timed)flow.timer=setInterval(()=>{flow.left--;const b=stage.querySelector(".time i");if(b)b.style.width=(flow.left/flow.limit*100)+"%";const tl=stage.querySelector(".tl");if(tl)tl.textContent=fmt(flow.left);if(flow.left<=0)endFlow();},1000);
+  nextFlow();
+}
+const fmt=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+function flowHeader(){
+  const L=cfg();const th=flow.theme==="all"?"kaikki teemat":themes.find(t=>t.id===flow.theme).short;
+  const nums=support.calm?"":`<span>oikein <b>${flow.right}/${flow.asked}</b></span><span class="streak">putki ${flow.streak}</span>`;
+  const prog=flow.timed?`<div class="time"><i style="width:${flow.left/flow.limit*100}%"></i></div><span class="tl">${fmt(flow.left)}</span>`:`<span>kysymys ${Math.min(flow.count,flow.limit)}/${flow.limit}</span>`;
+  return `<div class="flowbar"><span>${L.name.split(":")[0]} · ${th}</span>${prog}${nums}<button id="stop" style="border:none;background:none;color:#5b6b78;cursor:pointer;font:inherit;font-size:13px">Lopeta</button></div>`;
+}
+function nextFlow(){
+  if(flow.done)return;if(flow.adv){clearTimeout(flow.adv);flow.adv=null}flow.busy=false;oq=null;
+  if(!flow.timed&&flow.count>=flow.limit){endFlow();return;}
+  if(!flow.queue.length){flow.queue=buildQueue();if(!flow.queue.length){endFlow();return;}}
+  const q=flow.queue.shift();flow.q=q;flow.count++;
+  renderQuestion(q);
+}
+function renderQuestion(q){
+  const L=cfg();let body="";
+  if(q.t==="mc"||(q.t==="clim"&&q.sub!=="month")){
+    let w=shuffle(q.w).slice(0,L.opts-1);const opts=shuffle([q.a,...w]);
+    const dg=q.t==="clim"?`<div class="diagram">${DG.diagrammi(null,{station:q.st,hideTitle:true})}</div>`:q.st?`<div class="diagram">${DG.diagrammi(null,{station:stations.find(s=>s.id===q.st)})}</div>`:"";
+    body=`<p class="quiz-q">${q.q}${listenBtn(q.q)}</p>${dg}<div class="opts">${opts.map(o=>`<button data-ans="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}</div>`;
+  }else if(q.t==="clim"&&q.sub==="month"){
+    body=`<p class="quiz-q">${q.q}${listenBtn(q.q)}</p><div class="diagram" id="qdg">${DG.diagrammi(null,{station:q.st,hideTitle:true})}</div><p class="muted" style="font-size:13px">Klikkaa kuukauden saraketta.</p>`;
+  }else if(q.t==="sort"){
+    const used=q._used||(q._used=new Set());let avail=q.items.map((x,i)=>i).filter(i=>!used.has(i));if(!avail.length){used.clear();avail=q.items.map((x,i)=>i);}
+    const i=pick(avail);used.add(i);q._cur=i;
+    body=`<p class="quiz-q">${q.q}${listenBtn(q.q+" "+q.items[i][0])}</p><p style="font-size:20px;font-weight:600;margin:4px 0 10px">${q.items[i][0]}</p><div class="opts${q.cats.length===2?" two":""}">${q.cats.map((c,k)=>`<button class="big" data-cat="${k}">${c}</button>`).join("")}</div>`;
+  }else if(q.t==="order"){
+    oq={items:shuffle(q.items.map((t,i)=>({t,i}))),placed:[]};
+    body=`<p class="quiz-q">${q.q}${listenBtn(q.q)}</p><div id="order-area">${orderHTML(q)}</div>`;
+  }else if(q.t==="label"){
+    const hint=L.hint&&!L.labels&&items[q.target]?`<p class="muted" style="font-size:13.5px">Vihje: ${items[q.target].where}</p>`:"";
+    const dg=q.dg==="sykloni"?DG.sykloni(null,{labels:L.labels,step:5}):DG[q.dg](null,{labels:L.labels});
+    body=`<p class="quiz-q">${q.q}${listenBtn(q.q)}</p>${hint}<div class="diagram" id="qdg">${dg}</div><p class="muted" id="miss-tip" style="font-size:13px">&nbsp;</p>`;
+  }
+  stage.innerHTML=flowHeader()+body;
+  document.getElementById("stop").onclick=endFlow;
+  speak(q.q);
+  stage.querySelectorAll("[data-ans]").forEach(b=>b.onclick=()=>flowAnswer({ans:b.dataset.ans,btn:b}));
+  stage.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>flowAnswer({cat:+b.dataset.cat,btn:b}));
+  const qdg=document.getElementById("qdg");
+  if(qdg){qdg.onclick=e=>{const h=e.target.closest(".hit");if(!h){const t=document.getElementById("miss-tip");if(t)t.textContent="Klikkaa kaavion kohdetta.";return;}if(h.dataset.month!==undefined)flowAnswer({month:+h.dataset.month});else if(h.dataset.item)flowAnswer({item:h.dataset.item});};
+    qdg.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){const h=e.target.closest(".hit");if(h){e.preventDefault();h.click();}}};}
+  bindOrder();
+  const f=stage.querySelector(".opts button, .bank button");if(f&&!("ontouchstart" in window))f.focus();
+}
+function orderHTML(q){
+  const slots=q.items.map((_,k)=>{const p=oq.placed[k];return `<div class="slot${p?" filled":""}" data-slot="${k}"><b>${k+1}.</b>${p?p.t:'<span class="muted">…</span>'}</div>`;}).join("");
+  const bankH=oq.items.filter(it=>!oq.placed.includes(it)).map(it=>`<button data-o="${it.i}">${it.t}</button>`).join("");
+  return `<div class="order">${slots}</div><div class="bank" aria-label="Vaihtoehdot">${bankH}</div><div class="row"><button id="undo" ${oq.placed.length?"":"disabled"}>Peru</button></div>`;
+}
+function bindOrder(){
+  const a=document.getElementById("order-area");if(!a)return;
+  a.onclick=e=>{if(!oq||flow.busy)return;const b=e.target.closest("button,.slot.filled");if(!b)return;
+    if(b.dataset.o!==undefined){const it=oq.items.find(x=>x.i===+b.dataset.o);oq.placed.push(it);const left=oq.items.filter(x=>!oq.placed.includes(x));if(left.length===1)oq.placed.push(left[0]);
+      a.innerHTML=orderHTML(flow.q);if(oq.placed.length===flow.q.items.length)flowAnswer({order:oq.placed.map(x=>x.i)});else{const nb=a.querySelector(".bank button");if(nb&&!("ontouchstart" in window))nb.focus();}}
+    else if(b.dataset.slot!==undefined){oq.placed.splice(+b.dataset.slot);a.innerHTML=orderHTML(flow.q);}
+    else if(b.id==="undo"){oq.placed.pop();a.innerHTML=orderHTML(flow.q);}
+  };
+}
+function flowAnswer(a){
+  if(flow.busy||!flow.q||flow.done)return;
+  const q=flow.q;let ok=false,what="";
+  if(q.t==="mc"||(q.t==="clim"&&q.sub!=="month")){ok=a.ans===q.a;what=ok?`<strong>${q.a}</strong>`:`Ei. Oikea: <strong>${q.a}</strong>`;
+    stage.querySelectorAll("[data-ans]").forEach(b=>{b.disabled=true;if(b.dataset.ans===q.a)b.classList.add("right");else if(b===a.btn)b.classList.add("wrong");});}
+  else if(q.t==="clim"&&q.sub==="month"){ok=q.month(a.month);what=ok?`<strong>${MONF[a.month]}</strong>`:`Ei, ${MONF[a.month]} ei ole se. `;
+    const svg=document.getElementById("qdg");svg.querySelectorAll(".hit[data-month]").forEach(h=>{const m=+h.dataset.month;if(q.month(m))h.classList.add("hl");});}
+  else if(q.t==="sort"){const it=q.items[q._cur];ok=a.cat===it[1];what=ok?`<strong>${it[0]}</strong>: ${q.cats[it[1]]}`:`Ei. <strong>${it[0]}</strong>: ${q.cats[it[1]]}`;
+    stage.querySelectorAll("[data-cat]").forEach(b=>{b.disabled=true;if(+b.dataset.cat===it[1])b.classList.add("right");else if(b===a.btn)b.classList.add("wrong");});}
+  else if(q.t==="order"){ok=a.order.every((v,i)=>v===i);const firstWrong=a.order.findIndex((v,i)=>v!==i);
+    what=ok?"<strong>Oikea järjestys.</strong>":`Ei ihan. Kohta ${firstWrong+1} pitäisi olla: <strong>${q.items[firstWrong]}</strong>.<br><span class="muted">Oikea järjestys: ${q.items.map((t,i)=>`${i+1}. ${t}`).join(" · ")}</span>`;}
+  else if(q.t==="label"){const within={otsoni:"strato",paivantasaaja:"tropiikki"};ok=a.item===q.target||within[a.item]===q.target;const name=items[a.item]?items[a.item].name:phaseNames[a.item]||a.item;const tname=items[q.target]?items[q.target].name:phaseNames[q.target]||q.target;
+    what=ok?`<strong>${tname}</strong>`:`Ei, se on ${name}. Oikea: <strong>${tname}</strong>`;
+    const svg=document.getElementById("qdg");if(svg){const t=svg.querySelector(`.hit[data-item="${q.target}"]`);if(t){t.classList.add("hl","pulse");t.querySelectorAll(".lbl").forEach(l=>l.classList.remove("hidden"));}if(!ok){const w=svg.querySelector(`.hit[data-item="${a.item}"]`);if(w)w.querySelectorAll(".lbl").forEach(l=>l.classList.remove("hidden"));}}}
+  else return;
+  flow.busy=true;flow.asked++;markKnown(q.key,ok);
+  let cheer="";
+  if(ok){flow.right++;flow.streak++;flow.best=Math.max(flow.best,flow.streak);cheer=cheers.streak[flow.streak]?`<p class="cheer big">${cheers.streak[flow.streak]}</p>`:`<p class="cheer">${pick(cheers.ok)}</p>`;}
+  else{flow.streak=0;flow.missed.set(q.key,{n:(flow.missed.get(q.key)||{n:0}).n+1,q});
+    const pos=support.calm?0:Math.min(flow.queue.length,3+Math.floor(Math.random()*3));flow.queue.splice(pos,0,q);cheer=`<p class="cheer">${pick(cheers.no)}</p>`;}
+  const why=q.why?`<p class="tip">${q.why}</p>`:"";
+  const fb=document.createElement("div");fb.innerHTML=`<div class="feedback ${ok?"ok":"no"}">${what}${listenBtn(strip(what)+". "+(q.why||""))}</div>${why}${cheer}<div class="row"><button id="next" class="primary">Seuraava</button></div>`;
+  stage.appendChild(fb);
+  const hb=stage.querySelector(".flowbar");if(hb)hb.outerHTML=flowHeader();document.getElementById("stop").onclick=endFlow;
+  speak(strip(what)+". "+(q.why||""));
+  const nb=document.getElementById("next");nb.onclick=nextFlow;nb.focus({preventScroll:false});nb.scrollIntoView({block:"nearest"});
+  if(!support.calm)flow.adv=setTimeout(()=>{flow.adv=null;if(flow.q===q&&flow.busy)nextFlow()},ok?1600:(q.t==="order"?5000:3500));
+}
+function endFlow(){
+  flow.done=true;if(flow.timer){clearInterval(flow.timer);flow.timer=null}if(flow.adv){clearTimeout(flow.adv);flow.adv=null}oq=null;
+  const acc=flow.asked?Math.round(flow.right/flow.asked*100):0;
+  const miss=[...flow.missed.values()].sort((a,b)=>b.n-a.n).slice(0,support.calm?2:4).map(({q})=>{const th=themes.find(t=>t.id===q.th);return `<li><strong>${q.q}</strong> <span class="muted">(${th?th.short:""})</span><br>${q.a?`→ ${q.a}. `:""}${q.why||""}</li>`;}).join("");
+  const byTheme=new Map();[...streaks.entries()].forEach(([k,n])=>{const q=bank.find(x=>x.key===k);if(q&&n>=2)byTheme.set(q.th,(byTheme.get(q.th)||0)+1);});
+  const bestTh=[...byTheme.entries()].sort((a,b)=>b[1]-a[1])[0];
+  const good=bestTh?`<p><strong>Meni hyvin:</strong> ${themes.find(t=>t.id===bestTh[0]).name.toLowerCase()}.</p>`:"";
+  const line=acc>=90?"Erinomainen sessio. Seuraava kerta voi olla lyhyempi – tämä on hallussa.":acc>=70?"Vahva sessio. Alla olevat kannattaa katsoa vielä kerran huomenna.":"Hyvä alku. Toinen sessio huomenna tekee tästä pysyvää.";
+  stage.innerHTML=`<h2>Sessio tehty</h2><div class="stats"><span>kysymyksiä <b>${flow.asked}</b></span><span>oikein <b>${acc} %</b></span><span class="streak">paras putki <b>${flow.best}</b></span></div><p class="cheer">${line}</p>${good}${miss?`<p><strong>Seuraavaksi:</strong></p><ul class="review">${miss}</ul>`:"<p>Ei yhtään virhettä, jota tarvitsisi kerrata.</p>"}<div class="row"><button id="again" class="primary">Uusi sessio (${cfg().name.split(":")[0]})</button><button id="lvl">Vaihda tasoa tai teemaa</button><button id="explore">Tutki kaavioita</button></div>`;
+  document.getElementById("again").onclick=()=>startFlow(flow.level);document.getElementById("lvl").onclick=chooseLevel;document.getElementById("explore").onclick=()=>setMode("explore");
+  window.scrollTo({top:0});
+}
+stage.addEventListener("click",e=>{const b=e.target.closest(".listen");if(b)speak(b.dataset.say,true);});
+setMode("explore");
+</script>
+</body>
+</html>

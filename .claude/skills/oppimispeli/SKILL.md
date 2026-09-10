@@ -61,3 +61,23 @@ Toinen peli tehtiin ruotsin päälauseen sanajärjestyksestä (`sanajarjestys/in
 **Yhden asian harjoitukset kannattaa tehdä samalla koneistolla.** Sen sijaan, että jokaiselle harjoitustyypille tehtäisiin oma tila, Flow-sessio saa parametrin: kysymystyypit ja kysymysmäärä (12 kysymystä, ei ajastinta). Sama palaute, sama kertaus ja sama loppuyhteenveto ilman kopiokoodia.
 
 **Ääneen luku on ruotsiksi.** `SpeechSynthesis` kielellä `sv-SE`, oikean lauseen kuuntelu on nappina jokaisessa palautteessa ja Tutki-tilassa, ja tukiasetuksena se luetaan automaattisesti.
+
+## Kolmas peli: maapallo ja ilmakehä (17 koekysymystä, monta kaaviota)
+
+Kolmas peli (`maapallo/index.html`) tehtiin GE1-kurssin 17 koekysymyksestä: planetaarisuus, ilmakehä, tuulet, sade, ilmasto, syklonit ja ilmastodiagrammi. Lähtökohta oli eri kuin kahdessa ensimmäisessä: ei yhtä karttaa tai kaaviota vaan lista kysymyksiä, joihin peli antaa vastaukset. Mitä siitä kannattaa ottaa mukaan, kun materiaali on kysymyslista:
+
+**Kysymykset ryhmitellään teemoiksi, ja jokaiselle teemalle etsitään kaavio.** 17 kysymystä meni kuuteen teemaan, ja jokaiselle teemalle piirrettiin 1–3 SVG-kaaviota koodilla (pallo valaistusvyöhykkeineen, Maan kierto, ilmakehän kerrokset lämpökäyrineen, painevyöhykkeet ja tuulet, veden kierto, kolme sadetyyppiä, sykloni ylhäältä, syklonin vaiheet, ilmastodiagrammi asemadatasta). Kaaviot ovat piirrosfunktioita, jotka ottavat parametrina korostettavan kohteen ja sen, näytetäänkö nimilaput. Sama funktio piirtää Tutki-näkymän, kysymyksen ja palautteen. Kohteiden osuma-alueet ovat `<g class="hit" data-item=...>`, ja niiden kanssa toimii sama klikkauskäsittelijä kaikissa kaavioissa.
+
+**Vastaukset ovat kortteja kaavion alla.** Jokainen koekysymys on avattava kortti, jossa on vastaus valmiiksi vastausmuodossa (luettelo, lihavoidut avainsanat, yksi "muistisääntö"-laatikko). Kortin avaaminen korostaa vastauksen kohteet kaaviossa, ja tarvittaessa vaihtaa kaavion. Näin oppija lukee vastauksen ja näkee sen samalla.
+
+**Kysymyspankki on käsin kirjoitettu, mutta ilmastodiagrammit generoidaan.** Noin 180 kysymystä kuutta tyyppiä: monivalinta, lajittelu kahteen tai kolmeen luokkaan, järjestäminen napauttamalla, kohteen klikkaus kaaviosta, sekä ilmastodiagrammista generoidut kysymykset (pallonpuolisko, lämpimin ja sateisin kuukausi klikkaamalla, kuiva kausi, ilmastotyyppi, merellinen vai mantereinen). 12 asemaa taulukoituna riittää, ja kuivan kauden sääntö (sadepylväs jää lämpökäyrän alle, 1 °C = 2 mm) lasketaan datasta eikä kirjoiteta käsin. Tarkista asemien kuiva-kausi-tulos Nodella ennen selainta.
+
+**Piirtäminen harjoitellaan vaiheittain.** "Varmista että osaat piirtää syklonin" toteutettiin kolmella tavalla: Tutki-tilassa nappi "Piirrä vaihe vaiheelta" (L, lämmin rintama, kylmä rintama, sektori ja ilmamassat, kierto ja liike), harjoituksessa järjestämiskysymys piirtämisen vaiheista, ja klikkauskysymyksiä rintamista. Ilmastodiagrammille sama: "Piirrä kuukausi kerrallaan" lisää yhden pylvään ja pisteen kerrallaan taulukon vierellä.
+
+**Sisäkkäiset kohteet.** Otsonikerros on stratosfäärin sisällä ja päiväntasaaja tropiikin keskellä. Kun kysytään ulompaa ja klikataan sisempää, vastaus on oikein: pieni `within`-taulukko palautteessa. Löytyi vain `elementFromPoint`-testillä, joka kannattaa ajaa kaikille kaavioille yhdellä kertaa (jokaisen kohteen osuma-alueen keskipiste → mikä kohde vastaa).
+
+**Läpinäkyvä osuma-alue keskellä varastaa klikkaukset.** Pallon akselin leveä näkymätön viiva kulki kaikkien vyöhykkeiden ja leveyspiirien keskipisteen kautta ja voitti ne. Piirrä sellaiset osuma-alueet ennen vyöhykkeitä (jolloin ne toimivat vain pallon ulkopuolella) ja näkyvä viiva erikseen päälle `pointer-events:none`. Samoin painevyöhykkeiden kapeat osuma-alueet piirretään tuulivyöhykkeiden jälkeen, jotta ne jäävät päälle.
+
+**Puhelimessa leveä kaavio saa vierittyä vaakasuunnassa.** 640 yksikköä leveä SVG kutistui 375 px:iin niin, että tekstit olivat 6 px ja painevyöhykkeen osuma-alue 11 px. Ratkaisu: kapealla näytöllä kaaviolle `min-width:520px` ja säiliölle `overflow-x:auto`. Sivu itse ei vieri vaakasuunnassa, kaavio vierii. Osuma-alueet kasvatettiin niin, että ne ovat puhelimessa vähintään noin 25 px.
+
+**Automaattinen läpiajo ennen käyttäjää.** Selaimessa ajettu skripti, joka käynnistää jokaisen tason ja teeman, vastaa jokaiseen kysymykseen ohjelmallisesti (kolme oikein, yksi väärin) ja tarkistaa, että palaute ilmestyy ja seuraava kysymys tulee. Se löytää tyyppikohtaiset virheet minuutissa; käsin klikkaamalla niihin menisi tunti.

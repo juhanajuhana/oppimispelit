@@ -10,6 +10,7 @@ Pelit ovat julkaistuna GitHub Pagesissa: https://juhanajuhana.github.io/oppimisp
 | --- | --- | --- |
 | Maailman meret: merialueet ja merivirrat | Maantiede | [merivirrat/](https://juhanajuhana.github.io/oppimispelit/merivirrat/) |
 | Ruotsin sanajärjestys: suora ja käänteinen | Ruotsi | [sanajarjestys/](https://juhanajuhana.github.io/oppimispelit/sanajarjestys/) |
+| Maapallo ja ilmakehä: GE1-kertaus (planetaarisuus, ilmakehä, tuulet, sade, ilmasto, syklonit, ilmastodiagrammi) | Maantiede | [maapallo/](https://juhanajuhana.github.io/oppimispelit/maapallo/) |
 
 ## Skilli
 
